@@ -1,2 +1,2 @@
 # Rate-My-Class
-Team Good Question CSE312 Project
+Team Good Question CSE312 Project 
