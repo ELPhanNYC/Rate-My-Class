@@ -12,7 +12,7 @@ mongo = PyMongo(app)
 def index():
     return render_template('index.html')
 
-@app.route("/login", methods=['GET'])
+@app.route("/login", methods=['POST'])
 def login():
     login = False
 
@@ -20,8 +20,8 @@ def login():
     pwd = request.form.get("password")
     
     auth_obj = mongo.db.users.find_one({"username" : user})
-    if  auth_obj != None:
-        if bcrypt.checkpw(pwd.encode(), auth_obj):
+    if auth_obj != None:
+        if bcrypt.checkpw(pwd.encode(), auth_obj["password"]):
             login = True
             
     if login:
