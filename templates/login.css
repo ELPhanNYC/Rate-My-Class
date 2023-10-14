@@ -1,0 +1,74 @@
+body {
+    background: #005BBB;
+}
+
+.header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: montserrat;
+}
+
+.login-element {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 20px;
+    background-color: white;
+    height: 35rem;
+    width: 30rem;
+}
+
+.login-text {
+    padding-top: 20px;
+    padding-bottom: 4rem;
+    font-family: montserrat;
+    font-size: 3rem;
+}
+
+.login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    color: white;
+    background-color: #002F56;
+    height: 3rem;
+    width: 20rem;
+}
+
+.have-account {
+    padding-top: 11rem;
+}
+
+.login:hover {
+    cursor: pointer;
+}
+
+.info {
+    background-color: white;
+    color: black;
+    width: 18.3rem;
+    height: 2.5rem;
+    border-radius: 20px;
+    font-family: montserrat;
+    padding-left: 15px;
+    margin-right: 1rem;
+    margin-bottom: 2rem;
+    border: 1px solid #2F9FD0; 
+}
+
+textarea, input{
+    outline: none;
+    border: none;
+}
+
+input::placeholder   {
+    color: #D2D2D2;
+}
+
+a {
+    text-decoration: none;  /* Removes the underline */
+    color: inherit;         /* Makes the link use the inherited color, i.e., no default blue color */
+}

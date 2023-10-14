@@ -1,0 +1,113 @@
+body {
+    background: #005BBB;
+}
+img.home-logo {
+    padding: 1rem;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.buttons {
+    display: flex;
+    text-align: center;
+    padding: 2rem;
+    color: white;
+    font-size: 2rem;
+    font-family: montserrat;
+}
+
+.login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 2rem;
+    background-color: #002F56;
+    height: 5rem;
+    width: 9rem;
+}
+
+.login:hover {
+    cursor: pointer;
+    background-color: #2F9FD0;
+}
+
+.register {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 2rem;
+    background-color: #002F56;
+    height: 5rem;
+    width: 11rem;
+}
+
+.register:hover {
+    cursor: pointer;
+    background-color: #2F9FD0;
+}
+
+.search-element {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 2rem;
+    justify-content: center;
+    color:white;
+    margin-top: 7rem; 
+    font-family: montserrat;
+}
+
+.search-bar {
+    background-color: white;
+    color: black;
+    width: 40rem;
+    height: 2.5rem;
+    border-radius: 20px;
+    font-family: montserrat;
+    padding-left: 15px;
+    margin-right: 1rem;
+}
+
+.search-and-find {
+    display: flex;
+    justify-content: center;
+}
+
+.find-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2F9FD0;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    width: 5rem;
+}
+
+.find-button:hover {
+    cursor: pointer;
+}
+
+.description {
+    padding-bottom: 1rem;
+}
+
+textarea, input{
+    outline: none;
+    border: none;
+}
+
+input::placeholder   {
+    color: #D2D2D2;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
