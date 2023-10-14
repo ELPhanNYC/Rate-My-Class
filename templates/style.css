@@ -4,3 +4,47 @@ body {
 img.home-logo {
     padding: 1rem;
 }
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.buttons {
+    display: flex;
+    text-align: center;
+    padding: 2rem;
+    color: white;
+    font-size: 2rem;
+    font-family: montserrat;
+}
+
+.login {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 2rem;
+    background-color: #002F56;
+    height: 5rem;
+    width: 9rem;
+}
+
+.login:hover {
+    cursor: pointer;
+}
+
+.register {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: 2rem;
+    background-color: #002F56;
+    height: 5rem;
+    width: 11rem;
+}
+
+.register:hover {
+    cursor: pointer;
+}
