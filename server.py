@@ -12,9 +12,13 @@ mongo = PyMongo(app)
 def get_index():
     return render_template('index.html')
 
-@app.route("/style.css")
-def get_stylesheet():
-    resp = make_response(send_file('templates/style.css', mimetype = 'text/css'))
+@app.route("/<filename>.html")
+def get_page(filename):
+    return render_template(f'{filename}.html')
+
+@app.route("/<filename>.css")
+def get_stylesheet(filename):
+    resp = make_response(send_file(f'templates/{filename}.css', mimetype = 'text/css'))
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 

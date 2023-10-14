@@ -33,6 +33,7 @@ img.home-logo {
 
 .login:hover {
     cursor: pointer;
+    background-color: #2F9FD0;
 }
 
 .register {
@@ -47,6 +48,7 @@ img.home-logo {
 
 .register:hover {
     cursor: pointer;
+    background-color: #2F9FD0;
 }
 
 .search-element {
@@ -103,3 +105,9 @@ textarea, input{
 input::placeholder   {
     color: #D2D2D2;
 }
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
