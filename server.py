@@ -10,11 +10,17 @@ mongo = PyMongo(app)
 
 @app.route("/")
 def get_index():
-    return render_template('index.html')
+    content = render_template('index.html')
+    resp = make_response(content)
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
 
 @app.route("/<filename>.html")
 def get_page(filename):
-    return render_template(f'{filename}.html')
+    content = render_template(f'{filename}.html')
+    resp = make_response(content)
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
 
 @app.route("/<filename>.css")
 def get_stylesheet(filename):
