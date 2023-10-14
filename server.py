@@ -1,4 +1,4 @@
-from flask import Flask , render_template , request , make_response
+from flask import Flask , render_template , request , make_response, send_file
 from flask_pymongo import PyMongo
 import secrets
 import hashlib
@@ -9,8 +9,21 @@ app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_clas
 mongo = PyMongo(app)
 
 @app.route("/")
-def index():
+def get_index():
     return render_template('index.html')
+
+@app.route("/style.css")
+def get_stylesheet():
+    resp = make_response(send_file('templates/style.css', mimetype = 'text/css'))
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
+
+@app.route("/static/images/<filename>")
+def get_images(filename):
+    resp = make_response(send_file(f'templates/static/images/{filename}'))
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
+
 
 @app.route("/login", methods=['POST'])
 def login():
