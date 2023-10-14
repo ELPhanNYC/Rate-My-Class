@@ -107,13 +107,7 @@ input::placeholder   {
 }
 
 a {
-<<<<<<< HEAD
     color: white;
     text-decoration: none;
 }
 
-=======
-    text-decoration: none;  /* Removes the underline */
-    color: inherit;         /* Makes the link use the inherited color, i.e., no default blue color */
-}
->>>>>>> 116e9052eed8ead5091c8d56bbf4255f0d0e51eb

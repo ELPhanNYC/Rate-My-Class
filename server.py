@@ -12,7 +12,6 @@ mongo = PyMongo(app)
 def get_index():
     return render_template('index.html')
 
-<<<<<<< HEAD
 @app.route("/<filename>.html")
 def get_page(filename):
     return render_template(f'{filename}.html')
@@ -20,31 +19,6 @@ def get_page(filename):
 @app.route("/<filename>.css")
 def get_stylesheet(filename):
     resp = make_response(send_file(f'templates/{filename}.css', mimetype = 'text/css'))
-=======
-@app.route("/register.html")
-def get_register():
-    return render_template('register.html')
-
-@app.route("/register.css")
-def get_register_stylesheet():
-    resp = make_response(send_file('templates/register.css', mimetype = 'text/css'))
-    resp.headers['X-Content-Type-Options'] = 'nosniff'
-    return resp
-
-@app.route("/login.html")
-def get_login():
-    return render_template('login.html')
-
-@app.route("/login.css")
-def get_login_stylesheet():
-    resp = make_response(send_file('templates/login.css', mimetype = 'text/css'))
-    resp.headers['X-Content-Type-Options'] = 'nosniff'
-    return resp
-
-@app.route("/style.css")
-def get_stylesheet():
-    resp = make_response(send_file('templates/style.css', mimetype = 'text/css'))
->>>>>>> 116e9052eed8ead5091c8d56bbf4255f0d0e51eb
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
