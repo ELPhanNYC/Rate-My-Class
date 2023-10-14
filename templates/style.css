@@ -48,3 +48,58 @@ img.home-logo {
 .register:hover {
     cursor: pointer;
 }
+
+.search-element {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    font-size: 2rem;
+    justify-content: center;
+    color:white;
+    margin-top: 7rem; 
+    font-family: montserrat;
+}
+
+.search-bar {
+    background-color: white;
+    color: black;
+    width: 40rem;
+    height: 2.5rem;
+    border-radius: 20px;
+    font-family: montserrat;
+    padding-left: 15px;
+    margin-right: 1rem;
+}
+
+.search-and-find {
+    display: flex;
+    justify-content: center;
+}
+
+.find-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #2F9FD0;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    width: 5rem;
+}
+
+.find-button:hover {
+    cursor: pointer;
+}
+
+.description {
+    padding-bottom: 1rem;
+}
+
+textarea, input{
+    outline: none;
+    border: none;
+}
+
+input::placeholder   {
+    color: #D2D2D2;
+}
