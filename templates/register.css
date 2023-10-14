@@ -67,3 +67,8 @@ textarea, input{
 input::placeholder   {
     color: #D2D2D2;
 }
+
+a {
+    text-decoration: none;  /* Removes the underline */
+    color: inherit;         /* Makes the link use the inherited color, i.e., no default blue color */
+}

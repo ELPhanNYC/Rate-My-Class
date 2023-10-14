@@ -12,6 +12,26 @@ mongo = PyMongo(app)
 def get_index():
     return render_template('index.html')
 
+@app.route("/register.html")
+def get_register():
+    return render_template('register.html')
+
+@app.route("/register.css")
+def get_register_stylesheet():
+    resp = make_response(send_file('templates/register.css', mimetype = 'text/css'))
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
+
+@app.route("/login.html")
+def get_login():
+    return render_template('login.html')
+
+@app.route("/login.css")
+def get_login_stylesheet():
+    resp = make_response(send_file('templates/login.css', mimetype = 'text/css'))
+    resp.headers['X-Content-Type-Options'] = 'nosniff'
+    return resp
+
 @app.route("/style.css")
 def get_stylesheet():
     resp = make_response(send_file('templates/style.css', mimetype = 'text/css'))
