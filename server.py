@@ -34,7 +34,6 @@ def get_images(filename):
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
-
 @app.route("/login", methods=['POST'])
 def login():
     login = False

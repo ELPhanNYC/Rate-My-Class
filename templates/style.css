@@ -19,6 +19,7 @@ img.home-logo {
     color: white;
     font-size: 2rem;
     font-family: montserrat;
+    
 }
 
 .login {
@@ -30,6 +31,7 @@ img.home-logo {
     background-color: #002F56;
     height: 5rem;
     width: 11rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .login:hover {
@@ -45,6 +47,7 @@ img.home-logo {
     background-color: #002F56;
     height: 5rem;
     width: 11rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .register:hover {
@@ -60,6 +63,7 @@ img.home-logo {
     background-color: #006570;
     height: 5rem;
     width: 16rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .rating:hover {
@@ -88,6 +92,7 @@ img.home-logo {
     font-family: montserrat;
     padding-left: 15px;
     margin-right: 1rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .search-and-find {
@@ -103,6 +108,7 @@ img.home-logo {
     border-radius: 20px;
     font-size: 0.8rem;
     width: 5rem;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
 .find-button:hover {
