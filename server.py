@@ -62,5 +62,12 @@ def register():
     response.headers["Location"] = '/login.html'
     return response
 
+@app.route("/rating", methods=['POST'])
+def rating():
+    print("Path hit!")
+    response = make_response("Moved Permanently", 301)
+    response.headers["Location"] = '/'
+    return response
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=8080)

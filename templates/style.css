@@ -25,10 +25,11 @@ img.home-logo {
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-left: 2rem;
     margin-right: 2rem;
     background-color: #002F56;
     height: 5rem;
-    width: 9rem;
+    width: 11rem;
 }
 
 .login:hover {
@@ -49,6 +50,21 @@ img.home-logo {
 .register:hover {
     cursor: pointer;
     background-color: #2F9FD0;
+}
+
+.rating {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 2rem;
+    background-color: #006570;
+    height: 5rem;
+    width: 16rem;
+}
+
+.rating:hover {
+    cursor: pointer;
+    background-color: #00a69c;
 }
 
 .search-element {
