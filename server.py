@@ -37,6 +37,8 @@ def get_images(filename):
 
 @app.route("/login", methods=['POST'])
 def login():
+    print("Path hit!")
+
     login = False
 
     user = request.form.get("username")

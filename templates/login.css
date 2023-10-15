@@ -37,13 +37,13 @@ body {
     height: 3rem;
     width: 20rem;
 }
+.login:hover {
+    background-color: #2F9FD0;
+    cursor: pointer;
+}
 
 .have-account {
     padding-top: 11rem;
-}
-
-.login:hover {
-    cursor: pointer;
 }
 
 .info {
