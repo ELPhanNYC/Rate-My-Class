@@ -43,6 +43,7 @@ body {
 }
 
 .register:hover {
+    background-color: #005BBB;
     cursor: pointer;
 }
 

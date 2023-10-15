@@ -11,13 +11,15 @@
 <body>
     <div class="header">
         <img class ="home-logo" src ="static/images/rmc-logo.svg" width="300" height="300" >
-        <div class="register-element"> 
-            <div class="register-text">Register</div>
-            <input class="info" placeholder="Username"></input>
-            <input class="info" placeholder="Password"></input>
-            <div class="register">Register</div>
-            <div class="have-account">Have an account? <a href = "login.html">Login</a></div>
-        </div>
+        <form action="/register" method="post" enctype="application/x-www-form-urlencoded">
+            <div class="register-element"> 
+                <div class="register-text">Register</div>
+                <input class="info" placeholder="Username" id="reg-form-username" type="text" name="username_reg"></input>
+                <input class="info" placeholder="Password" id="reg-form-pass" type="password" name="password_reg"></input>
+                <input type="submit" class="register" value="Register"></input>
+                <div class="have-account">Have an account? <a href = "login.html">Login</a></div>
+            </div>
+        </form>
     </div>
 </body>
 </html>

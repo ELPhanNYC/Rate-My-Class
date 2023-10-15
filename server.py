@@ -37,30 +37,30 @@ def get_images(filename):
 
 @app.route("/login", methods=['POST'])
 def login():
-    print("Path hit!")
-
     login = False
-
     user = request.form.get("username")
     pwd = request.form.get("password")
-    
     auth_obj = mongo.db.users.find_one({"username" : user})
     if auth_obj != None:
         if bcrypt.checkpw(pwd.encode(), auth_obj["password"]):
-            login = True
-            
+            login = True  
     if login:
         auth_token = secrets.token_urlsafe(16)
-        
         hashed_token = hashlib.sha256(auth_token.encode())
         hashed_bytes = hashed_token.digest()
         mongo.db.tokens.update_one({"username" : user }, {"$set": {"auth_token": hashed_bytes}}, upsert=True)
-        
-        response = make_response("Login Successful",200)
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
         response.set_cookie('auth_token', auth_token, httponly=True, max_age=3600)
         return response
-    
     return make_response("Login Failed",400)
+
+@app.route("/register", methods=['POST'])
+def register():
+    print("Path hit!")
+    response = make_response("Moved Permanently", 301)
+    response.headers["Location"] = '/login.html'
+    return response
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=8080)
