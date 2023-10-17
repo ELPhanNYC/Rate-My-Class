@@ -1,36 +1,46 @@
 from flask import Flask , render_template , request , make_response, send_file
-from flask_pymongo import PyMongo
+#from flask_pymongo import PyMongo #for using flask_pymongo
+from pymongo import MongoClient #for using pymongo 
 import secrets
 import hashlib
 import bcrypt
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-mongo = PyMongo(app)
+#app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
+mongo = MongoClient('mongo') # PyMongo(app)
 
-@app.route("/")
-def get_index():
+@app.route("/", methods = ['GET']) #front end updated!
+def index_page():
     content = render_template('index.html')
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
-@app.route("/<filename>.html")
-def get_page(filename):
-    content = render_template(f'{filename}.html')
+@app.route("/register_page", methods=['GET'])
+def register_page():
+    content = render_template('register.html')
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
-@app.route("/<filename>.css")
-def get_stylesheet(filename):
-    resp = make_response(send_file(f'templates/{filename}.css', mimetype = 'text/css'))
+@app.route("/rating_page", methods=['GET'])
+def rating_page():
+    content = render_template('rating.html')
+    resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
+    """
+    print("Path hit!")
+    response = make_response("Moved Permanently", 301)
+    response.headers["Location"] = '/'
+    return response
+    """
+    
 
-@app.route("/static/images/<filename>")
-def get_images(filename):
-    resp = make_response(send_file(f'templates/static/images/{filename}'))
+@app.route("/login_page", methods = ['GET'])
+def login_page():
+    content = render_template('login.html')
+    resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
@@ -54,18 +64,18 @@ def login():
         return response
     return make_response("Login Failed",400)
 
-@app.route("/register", methods=['POST'])
-def register():
-    print("Path hit!")
-    response = make_response("Moved Permanently", 301)
-    response.headers["Location"] = '/login.html'
-    return response
-
 @app.route("/rating", methods=['POST'])
 def rating():
     print("Path hit!")
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/'
+    return response
+
+@app.route("/register", methods=['POST'])
+def register():
+    print("Path hit!")
+    response = make_response("Moved Permanently", 301)
+    response.headers["Location"] = '/login.html'
     return response
 
 if __name__ == '__main__':
