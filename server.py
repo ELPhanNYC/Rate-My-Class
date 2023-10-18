@@ -3,10 +3,15 @@ from flask_pymongo import PyMongo
 import secrets
 import hashlib
 import bcrypt
+from pymongo import MongoClient
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-mongo = PyMongo(app)
+#app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
+mongo = MongoClient('localhost') # PyMongo(app)
+db = mongo["rmc"]
+posts = db["posts"]
+users = db["users"]
+
 
 @app.route("/")
 def get_index():
@@ -56,7 +61,21 @@ def login():
 
 @app.route("/register", methods=['POST'])
 def register():
-    print("Path hit!")
+    register_dict = (dict(request.form)) #{"username_reg": user, "password_reg": pw}
+    user = register_dict["username_reg"]
+    pwd = register_dict["password_reg"]
+
+    #Escape HTML in username
+    user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+
+    #Salt and Hash password
+    salt = bcrypt.gensalt(20).decode()
+    salted_pwd = pwd + salt #Append salt to end of password
+    hashed_pwd = hashlib.sha256(salted_pwd.encode()).hexdigest()
+
+    #Input username and password into "users" collection
+    users.insert_one({"username":user_escaped, "password": hashed_pwd, "salt": salt})
+
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login.html'
     return response
