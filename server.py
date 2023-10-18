@@ -64,8 +64,21 @@ def login():
 
 @app.route("/rating", methods=['POST'])
 def rating():
-    # Temp Code - Checking if path is hit
-    print("Path hit!")
+    register_dict = (dict(request.form))
+    user = register_dict["username_reg"]
+    pwd = register_dict["password_reg"]
+
+    #Escape HTML in username
+    user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+
+    #Salt and Hash password
+    salt = bcrypt.gensalt(20).decode()
+    salted_pwd = pwd + salt #Append salt to end of password
+    hashed_pwd = hashlib.sha256(salted_pwd.encode()).hexdigest()
+
+    #Input username and password into "users" collection
+    users.insert_one({"username":user_escaped, "password": hashed_pwd, "salt": salt})
+
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/'
     return response
