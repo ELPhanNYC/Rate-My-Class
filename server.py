@@ -64,6 +64,16 @@ def login():
 
 @app.route("/rating", methods=['POST'])
 def rating():
+    # Temp Code - Checking if path is hit
+    print("Path hit!")
+    response = make_response("Moved Permanently", 301)
+    response.headers["Location"] = '/'
+    return response
+    # Temp Code
+
+
+@app.route("/register", methods=['POST'])
+def register():
     register_dict = (dict(request.form))
     user = register_dict["username_reg"]
     pwd = register_dict["password_reg"]
@@ -80,17 +90,9 @@ def rating():
     users.insert_one({"username":user_escaped, "password": hashed_pwd, "salt": salt})
 
     response = make_response("Moved Permanently", 301)
-    response.headers["Location"] = '/'
+    response.headers["Location"] = '/login_page'
     return response
-    # Temp Code
-
-@app.route("/register", methods=['POST'])
-def register():
-    print("Path hit!")
-    response = make_response("Moved Permanently", 301)
-    response.headers["Location"] = '/login.html'
-    return response
-    # Temp Code
+    
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=8080)
