@@ -46,8 +46,9 @@ def login_page():
 def login():
     login = False
     login_dict = dict(request.form)
-    user = login_dict.get("username_login") # using name from form
-    pwd = login_dict.get("password_login") # ^
+    user_not_escaped = login_dict.get("username_login") # using name from form
+    pwd = login_dict.get("password_login") #using name from form
+    user = user_not_escaped.replace("&","&amp").replace("<","&lt;").replace(">","&gt") #escape html in username
     auth_obj = users.find_one({"username" : user})
     if auth_obj != None:
         if bcrypt.checkpw(pwd.encode("utf-8"), auth_obj["password"]): # using bcrypt to check password
