@@ -42,6 +42,13 @@ def login_page():
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
+@app.route("/logout", methods = ['GET'])
+def logout():
+    response = make_response("Moved Permanently",302)
+    response.delete_cookie('auth_token',path='/')
+    response.headers["Location"] = '/'
+    return response
+
 @app.route("/login", methods=['POST']) # Reconfigured to work with common Mongo layout
 def login():
     login = False
