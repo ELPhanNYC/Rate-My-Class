@@ -1,24 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <link rel="icon" href="static/images/favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Rate My Class</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block css %}
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='css/style.css') }}">
+{% endblock css %}
+
+{% block body %}
     <div class="header">
-        <img class ="home-logo" src ="static/images/rmc-logo.svg">
+        <img class ="home-logo" src="{{ url_for('static', filename='images/rmc-logo.svg') }}">
         <div class="buttons">
-            <a href="rating.html">
+            <!--link to rating page-->
+            <a href="{{ url_for('rating_page')}}">
                 <div class="rating">Post a Rating</div>
             </a>
-            <a href = "login.html">
+            <!--link to login page-->
+            <a href = "{{ url_for('login_page')}}">
                 <div class="login">Login</div>
             </a>
-            <a href="register.html">
+            <!--link to register page-->
+            <a href="{{ url_for('register_page')}}">
                 <div class="register">Register</div>
             </a>
         </div>
@@ -33,5 +32,4 @@
             <div class="find-button">Find it!</div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

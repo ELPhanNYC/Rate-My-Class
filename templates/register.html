@@ -1,25 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="register.css">
-    <link rel="icon" href="static/images/favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Rate My Class</title>
-</head>
-<body>
-    <div class="header">
-        <a href = "index.html"><img class ="home-logo" src ="static/images/rmc-logo.svg" width="300" height="300"></a>
-        <form action="/register" method="post" enctype="application/x-www-form-urlencoded">
-            <div class="register-element"> 
-                <div class="register-text">Register</div>
-                <input class="info" placeholder="Username" id="reg-form-username" type="text" name="username_reg"></input>
-                <input class="info" placeholder="Password" id="reg-form-pass" type="password" name="password_reg"></input>
-                <input type="submit" class="register" value="Register"></input>
-                <div class="have-account">Have an account? <a href = "login.html">Login</a></div>
-            </div>
-        </form>
-    </div>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='css/register.css') }}">
+{% endblock css %}
+{% block body %}
+<div class="header">
+    <a href = "url_for('index_page')"><img class ="home-logo" src ="{{ url_for('static', filename='images/rmc-logo.svg') }}" width="300" height="300"></a>
+    <form action="/register" method="post" enctype="application/x-www-form-urlencoded">
+        <div class="register-element"> 
+            <div class="register-text">Register</div>
+            <input class="info" placeholder="Username" id="reg-form-username" type="text" name="username_reg"></input>
+            <input class="info" placeholder="Password" id="reg-form-pass" type="password" name="password_reg"></input>
+            <input type="submit" class="register" value="Register"></input>
+            <div class="have-account">Have an account? <a href = "{{url_for('login_page')}}">Login</a></div>
+        </div>
+    </form>
+</div>
+{% endblock %}

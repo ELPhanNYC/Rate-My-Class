@@ -1,25 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="login.css">
-    <link rel="icon" href="static/images/favicon.png">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-    <title>Rate My Class</title>
-</head>
-<body>
-    <div class="header">
-        <a href = "index.html"><img class ="home-logo" src ="static/images/rmc-logo.svg" width="300" height="300"></a>
+{% extends 'base.html' %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='css/login.css') }}">
+{% endblock css %}
+
+{% block body %}
+    <div class = 'header'>
+        <a href = "{{url_for('index_page')}}"><img class ="home-logo" src = "{{ url_for('static', filename='images/rmc-logo.svg') }}" width="300" height="300"></a>
         <form action="/login" method="post" enctype="application/x-www-form-urlencoded">
             <div class="login-element"> 
                 <div class="login-text">Login</div>
                 <input class="info" placeholder="Username" id="login-form-username" type="text" name="username_login"></input>
                 <input class="info" placeholder="Password" id="login-form-pass" type="password" name="password_login"></input>
                 <input type="submit" class="login" value="Login"></input>
-                <div class="have-account">Don't have an account? <a href ="register.html">Register</a></div>
+                <div class="have-account">Don't have an account? <a href ="{{ url_for('register_page') }}">Register</a></div>
             </div>
         </form>
-    </div>
-</body>
-</html>
+    </div>>
+{% endblock %}
