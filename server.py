@@ -7,7 +7,7 @@ from pymongo import MongoClient
 
 app = Flask(__name__)
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-mongo = MongoClient('localhost') # PyMongo(app)
+mongo = MongoClient('mongo') # PyMongo(app)
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
@@ -61,7 +61,7 @@ def login():
 
 @app.route("/register", methods=['POST'])
 def register():
-    register_dict = (dict(request.form)) #{"username_reg": user, "password_reg": pw}
+    register_dict = (dict(request.form))
     user = register_dict["username_reg"]
     pwd = register_dict["password_reg"]
 
