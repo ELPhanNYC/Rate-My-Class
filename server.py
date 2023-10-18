@@ -16,7 +16,7 @@ users = db["users"]
 
 @app.route("/", methods = ['GET']) #front end updated!
 def index_page():
-    content = render_template('index.html')
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"))
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
