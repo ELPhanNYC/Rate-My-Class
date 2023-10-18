@@ -45,11 +45,12 @@ def login_page():
 @app.route("/login", methods=['POST']) # Reconfigured to work with common Mongo layout
 def login():
     login = False
-    user = request.form.get("username")
-    pwd = request.form.get("password")
+    login_dict = dict(request.form)
+    user = login_dict.get("username_login") # using name from form
+    pwd = login_dict.get("password_login") # ^
     auth_obj = users.find_one({"username" : user})
     if auth_obj != None:
-        if bcrypt.checkpw(pwd.encode(), auth_obj["password"]):
+        if bcrypt.checkpw(pwd.encode("utf-8"), auth_obj["password"]): # using bcrypt to check password
             login = True  
     if login:
         auth_token = secrets.token_urlsafe(16)
@@ -74,7 +75,7 @@ def rating():
 
 @app.route("/register", methods=['POST'])
 def register():
-    register_dict = (dict(request.form))
+    register_dict = dict(request.form)
     user = register_dict["username_reg"]
     pwd = register_dict["password_reg"]
 
@@ -82,9 +83,8 @@ def register():
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
 
     #Salt and Hash password
-    salt = bcrypt.gensalt(20).decode()
-    salted_pwd = pwd + salt #Append salt to end of password
-    hashed_pwd = hashlib.sha256(salted_pwd.encode()).hexdigest()
+    salt = bcrypt.gensalt()
+    hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
 
     #Input username and password into "users" collection
     users.insert_one({"username":user_escaped, "password": hashed_pwd, "salt": salt})
