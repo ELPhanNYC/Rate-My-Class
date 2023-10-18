@@ -87,7 +87,7 @@ def register():
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
 
     #Input username and password into "users" collection
-    users.insert_one({"username":user_escaped, "password": hashed_pwd, "salt": salt})
+    users.insert_one({"username":user_escaped, "password": hashed_pwd})
 
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
