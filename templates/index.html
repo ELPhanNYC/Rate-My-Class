@@ -13,6 +13,7 @@
             <a href="{{ url_for('rating_page')}}">
                 <div class="rating">Post a Rating</div>
             </a>
+            <div class="rating">Welcome back {{username}}</div>
             {% else %}
             <!--link to login page-->
             <a href = "{{ url_for('login_page')}}">
@@ -35,4 +36,5 @@
             <div class="find-button">Find it!</div>
         </div>
     </div>
+
 {% endblock %}

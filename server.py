@@ -16,27 +16,32 @@ users = db["users"]
 
 @app.route("/", methods = ['GET']) #front end updated!
 def index_page():
-    content = render_template('index.html', is_authed = request.cookies.get("auth_token"))
+    #UPDATE pass in username for authenticated user to the index page
+    #TODO: beautify the frontend
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = 'test')
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
-@app.route("/register_page", methods=['GET'])
+@app.route("/register_page", methods=['GET', 'POST'])
 def register_page():
+    if request.method == "POST": pass
     content = render_template('register.html')
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
-@app.route("/rating_page", methods=['GET'])
+@app.route("/rating_page", methods=['GET', 'POST'])
 def rating_page():
+    if request.method == "POST": pass
     content = render_template('rating.html')
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp   
 
-@app.route("/login_page", methods = ['GET'])
+@app.route("/login_page", methods = ['GET', 'POST'])
 def login_page():
+    if request.method == "POST": pass
     content = render_template('login.html')
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
