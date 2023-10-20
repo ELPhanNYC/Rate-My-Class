@@ -28,7 +28,10 @@
                 <div class="register">Register</div>
             </a>
             {% endif %}
+
+            
         </div>
+        
     </div>
 
     <div class="search-element"> 
@@ -40,5 +43,20 @@
             <div class="find-button">Find it!</div>
         </div>
     </div>
+
+    {% for post in posts %}
+    <div class="card">
+        <h5 class="card-header">Testing posts</h5>
+        <div class="card-body">
+            <p class="card-text">
+                Name of the user: {{post['username']}}
+                Name of the professor: {{post['professor']}}
+                Course rating: {{post['rating']}}
+                Difficulty rating: {{post['difficulty']}}
+                Comments: {{post['comments']}}
+            </p>
+        </div>
+    </div>
+    {% endfor %}
 
 {% endblock %}

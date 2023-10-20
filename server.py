@@ -18,7 +18,18 @@ users = db["users"]
 def index_page():
     #UPDATE pass in username for authenticated user to the index page
     #TODO: beautify the frontend
-    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = 'test')
+    #verify user using authentication token
+    is_authed = request.cookies.get("auth_token")
+    hashed_token = hashlib.sha256(is_authed.encode())
+    hashed_bytes = hashed_token.digest()
+    auth_obj = users.find_one({"auth_token" : hashed_bytes})
+    username = ""
+    rating_posts = []
+    if auth_obj:
+        username = auth_obj['username']
+        cursor_post = posts.find({})
+        rating_posts = [post for post in cursor_post]
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, posts = rating_posts)
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
