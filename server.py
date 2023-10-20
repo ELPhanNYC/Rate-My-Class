@@ -47,6 +47,13 @@ def login_page():
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
 
+@app.route("/logout", methods = ['GET'])
+def logout():
+    response = make_response("Moved Permanently",302)
+    response.delete_cookie('auth_token',path='/')
+    response.headers["Location"] = '/'
+    return response
+
 @app.route("/login", methods=['POST']) # Reconfigured to work with common Mongo layout
 def login():
     login = False
@@ -71,12 +78,42 @@ def login():
 
 @app.route("/rating", methods=['POST'])
 def rating():
-    # Temp Code - Checking if path is hit
-    print("Path hit!")
+    #handles multiple cookies by storing them has key-val pairs in cookie_dict
+    cookie_val = request.headers["Cookie"].split(";") #[auth_token=sWfIZuQDjYzoxG5jpBncfA,count=1]
+    cookie_dict = {}
+    for pair in cookie_val: 
+        split = pair.split("=",1) 
+        cookie_dict[split[0]] = split[1] 
+    
+    #verify user using authentication token
+    auth_token = cookie_dict["auth_token"]
+    hashed_token = hashlib.sha256(auth_token.encode())
+    hashed_bytes = hashed_token.digest()
+    auth_obj = users.find_one({"auth_token" : hashed_bytes})
+    
+    #retrieve post info and store it into "posts" collection
+    if auth_obj != None:
+        post_dict = dict(request.form)
+        unsafe_prof = post_dict.get("professor")
+        unsafe_rating = post_dict.get("rating")
+        unsafe_difficulty = post_dict.get("difficulty")
+        unsafe_comments = post_dict.get("comments")
+
+        #escape html for all user input
+        prof = unsafe_prof.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+        rating = unsafe_rating.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+        difficulty = unsafe_difficulty.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+        comments = unsafe_comments.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+
+        #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments
+        post_id = auth_token = secrets.token_urlsafe(16)
+        username = auth_obj["username"]
+        posts.insert_one({"post_id":post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments})
+
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/'
     return response
-    # Temp Code
+    
 
 
 @app.route("/register", methods=['POST'])
