@@ -14,7 +14,7 @@ posts = db["posts"]
 users = db["users"]
 
 
-@app.route("/", methods = ['GET']) #front end updated!
+@app.route("/", methods = ['GET'])
 def index_page():
     #UPDATE pass in username for authenticated user to the index page
     #TODO: beautify the frontend
@@ -30,7 +30,6 @@ def index_page():
             username = auth_obj['username']
     cursor_post = posts.find({})
     rating_posts = [post for post in cursor_post]
-    
     content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, posts = rating_posts)
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
@@ -92,14 +91,14 @@ def login():
 @app.route("/rating", methods=['POST'])
 def rating():
     #handles multiple cookies by storing them has key-val pairs in cookie_dict
-    cookie_val = request.headers["Cookie"].split(";") #[auth_token=sWfIZuQDjYzoxG5jpBncfA,count=1]
-    cookie_dict = {}
-    for pair in cookie_val: 
-        split = pair.split("=",1) 
-        cookie_dict[split[0]] = split[1] 
+    # cookie_val = request.headers["Cookie"].split(";") #[auth_token=sWfIZuQDjYzoxG5jpBncfA,count=1]
+    # cookie_dict = {}
+    # for pair in cookie_val: 
+    #     split = pair.split("=",1) 
+    #     cookie_dict[split[0]] = split[1] 
     
     #verify user using authentication token
-    auth_token = cookie_dict["auth_token"]
+    auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
     hashed_token = hashlib.sha256(auth_token.encode())
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token" : hashed_bytes})
