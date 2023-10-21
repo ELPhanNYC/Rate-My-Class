@@ -46,15 +46,31 @@
 
     {% for post in posts %}
     <div class="card">
-        <h5 class="card-header">Testing posts</h5>
-        <div class="card-body">
-            <p class="card-text">
-                Who made this post: {{post['username']}}
-                Name of the professor: {{post['professor']}}
-                Course rating: {{post['rating']}}
-                Difficulty rating: {{post['difficulty']}}
-                Comments: {{post['comments']}}
+        <div class = "card-header">
+            <p>
+                User:{{post['username']}} &emsp;
+                Professor: {{post['professor']}}
             </p>
+        </div>
+        <div class = "content">
+            <div class = "card-item">
+                <p>Rating</p>
+                <div class = "box">
+                    <p class = "box-values">{{post['rating']}}</p>
+                </div>
+            </div>
+            <div class = "card-item">
+                <p>Difficulty</p>
+                <div class = "box">
+                    <p class = "box-values">{{post['difficulty']}}</p>
+                </div>
+            </div>
+            <div class = "card-item-comment">
+                <p class = "comment-title">Comments</p>
+                <div class = "comments">
+                    <p class = "comment-content">{{post['comments']}}</p>
+                </div>
+            </div>
         </div>
     </div>
     {% endfor %}

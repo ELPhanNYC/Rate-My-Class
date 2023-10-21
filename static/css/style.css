@@ -133,3 +133,64 @@ a {
     text-decoration: none;
 }
 
+.card {
+    font-family: montserrat;
+    background-color: #E4E4E4;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    height: auto;/* From the Figma */
+    min-height: 192px;
+    max-width: 1200px;
+    /* Center the DIV */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 0px;
+    margin-top: 2rem;
+}
+
+.card-item {
+    float: left;
+    text-align: center;
+}
+.card-item-comment {
+    float: left;
+}
+
+.box {
+    width: 100px;
+    height: 100px;
+    border-radius: 25px;
+    background-color: white;
+    text-align: center;
+    margin: 1rem;
+    position: relative;
+}
+.comments {
+    height: 100px;
+    width: auto;
+    min-width: 700px;
+    border-radius: 25px;
+    background-color: white;
+    margin-left: 1rem;
+}
+.box-values {
+    position: absolute;
+    top: 15%;
+    left: 55%;
+    /* centering box values */
+    transform: translate(-85%, -45%);
+    font-size: 2rem;
+}
+
+.comment-title{
+    padding-left: 1rem;
+}
+
+.comment-content {
+    padding: 1.15rem;
+}
+
+.card-header {
+    padding-left: 1rem;
+}
+
