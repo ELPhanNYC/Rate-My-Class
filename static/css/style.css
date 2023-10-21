@@ -71,6 +71,15 @@ img.home-logo {
     background-color: #00a69c;
 }
 
+.welcome {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 2rem;
+    height: 5rem;
+    width: 16rem;
+}
+
 .search-element {
     display: flex;
     flex-direction: column;
