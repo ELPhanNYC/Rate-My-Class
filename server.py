@@ -90,15 +90,10 @@ def login():
 
 @app.route("/rating", methods=['POST'])
 def rating():
-    #handles multiple cookies by storing them has key-val pairs in cookie_dict
-    # cookie_val = request.headers["Cookie"].split(";") #[auth_token=sWfIZuQDjYzoxG5jpBncfA,count=1]
-    # cookie_dict = {}
-    # for pair in cookie_val: 
-    #     split = pair.split("=",1) 
-    #     cookie_dict[split[0]] = split[1] 
-    
     #verify user using authentication token
     auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
+    print("------cokie dict---------")
+    print(request.cookies)
     hashed_token = hashlib.sha256(auth_token.encode())
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token" : hashed_bytes})
@@ -131,8 +126,8 @@ def rating():
 @app.route("/register", methods=['POST'])
 def register():
     register_dict = dict(request.form)
-    user = register_dict["username_reg"]
-    pwd = register_dict["password_reg"]
+    user = register_dict.get("username_reg")
+    pwd = register_dict.get("password_reg")
 
     #Escape HTML in username
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
