@@ -92,8 +92,6 @@ def login():
 def rating():
     #verify user using authentication token
     auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
-    print("------cokie dict---------")
-    print(request.cookies)
     hashed_token = hashlib.sha256(auth_token.encode())
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token" : hashed_bytes})
