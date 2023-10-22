@@ -1,9 +1,10 @@
-from flask import Flask , render_template , request , make_response, send_file
+from flask import Flask , render_template , request , make_response, send_file, jsonify
 #from flask_pymongo import PyMongo #for using flask_pymongo
 from pymongo import MongoClient #for using pymongo 
 import secrets
 import hashlib
 import bcrypt
+import json
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -58,6 +59,10 @@ def login_page():
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
+
+@app.route("/script.js", methods = ['GET'])
+def script():
+    content = render_template('login.html')
 
 @app.route("/logout", methods = ['GET'])
 def logout():
@@ -140,6 +145,16 @@ def register():
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
+
+@app.route("/posts", methods = ['GET'])
+def get_posts():
+    db_posts = posts.find({})
+    post_arr = []
+    for post in db_posts:
+        post.pop("_id")
+        post_arr.append(post)
+    return jsonify(post_arr)
+
     
 
 if __name__ == '__main__':
