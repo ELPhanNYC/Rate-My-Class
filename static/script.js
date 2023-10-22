@@ -27,7 +27,7 @@ function styleMessage(messageJSON) {
     const rating = messageJSON.rating;
 
     // Add these two fields to json response body
-    // Need to send a request to /like endoint on click of the button
+    // Need to send a request to /like endpoint on click of the button
     // const likes = messageJSON.likeCount;
     // const likedByUser = messageJSON.likedByUser;
     const likes = 7;
@@ -83,8 +83,6 @@ function styleMessage(messageJSON) {
 function addMessageToChat(messageJSON) {
     const chatMessages = document.getElementById("posts-container");
     chatMessages.innerHTML += chatMessageHTML(messageJSON);
-    chatMessages.scrollIntoView(false);
-    chatMessages.scrollTop = chatMessages.scrollHeight - chatMessages.clientHeight;
 }
 
 function clearChat() {
