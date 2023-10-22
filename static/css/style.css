@@ -203,3 +203,8 @@ a {
     padding-left: 1rem;
 }
 
+.likes {
+    display: flex;
+    align-items: center;
+    padding-left: 1rem;
+}
