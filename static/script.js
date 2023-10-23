@@ -30,7 +30,8 @@ function likePostRequest(imgElement) {
         }
     }
     // Get the post_id from the clicked element
-    const post_id = document.getElementById("post_id").innerText;
+    const post_id = imgElement.id;
+    console.log(post_id)
     // Call onLike to update the likes value
     const updatedLikes = onLike(imgElement);
     // Send the request with the updated likes value
@@ -40,22 +41,27 @@ function likePostRequest(imgElement) {
 }
 
 function styleMessage(messageJSON) {
-    const post_id = messageJSON.post_id
+    const post_id = messageJSON.post_id;
     const username = messageJSON.username;
     const comments = messageJSON.comments;
     const professor = messageJSON.professor;
     const difficulty = messageJSON.difficulty;
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
-    let likedByUser = false
-    if (messageJSON.liked_by.includes(username) == true) {
-        likedByUser = true;
+    let token = "";
+    var cookies = document.cookie.split(";");
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].split("=");
+        if (cookie[0] == "auth_token") {
+            token = cookie[1];
+        }
+    }
+    console.log(messageJSON.liked_by)
+    if (messageJSON.liked_by.includes(token) == true) {
+        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
     } 
-    
-    if (likedByUser == true) {
-        isLiked = '<img id="like" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">';
-    } else {
-        isLiked = '<img id="like" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">';
+    else {
+        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
     }
 
     let card = `
@@ -116,7 +122,6 @@ function updateChat() {
         if (this.readyState === 4 && this.status === 200) {
             clearChat();
             const messages = JSON.parse(this.response);
-            
             for (const message of messages.reverse()) {
                 addMessageToChat(message);
             }
@@ -128,5 +133,5 @@ function updateChat() {
 
 function post_getter() {
     updateChat()
-    setInterval(updateChat, 3000);
+    // setInterval(updateChat, 3000);
 }

@@ -162,15 +162,15 @@ def like():
     post = posts.find_one({'post_id': like_dict['post_id']})
     post["likes"] = like_dict['likes']
     auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
-    hashed_token = hashlib.sha256(auth_token.encode())
-    hashed_bytes = hashed_token.digest()
-    auth_obj = users.find_one({"auth_token": hashed_bytes})
-    if auth_obj["username"] in post['liked_by']:
+    # hashed_token = hashlib.sha256(auth_token.encode())
+    # hashed_bytes = hashed_token.digest()
+    # auth_obj = users.find_one({"auth_token": hashed_bytes})
+    if auth_token in post['liked_by']:
         print("HIT")
-        post['liked_by'].remove(auth_obj['username'])
+        post['liked_by'].remove(auth_token)
     else:
         print("HIT!")
-        post['liked_by'].append(auth_obj['username'])
+        post['liked_by'].append(auth_token)
     posts.replace_one({'post_id': like_dict['post_id']},post)
     return make_response("OK", 200)
 
