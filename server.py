@@ -149,13 +149,22 @@ def register():
 @app.route("/posts", methods = ['GET'])
 def get_posts():
     db_posts = posts.find({})
-    auth_token = request.cookies.get('auth_token')
     post_arr = []
-    for post in db_posts:
-        post.pop("_id")
-        liked_by = post['liked_by']
-        post['liked'] = auth_token in liked_by
-        post_arr.append(post)
+    try:
+        auth_token = request.cookies.get('auth_token')
+        cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+        print("username is "+ cur)
+        for post in db_posts:
+            post.pop("_id")
+            liked_by = post['liked_by']
+            post['liked'] =  cur in liked_by
+            post_arr.append(post)
+    except:
+        for post in db_posts:
+            post.pop("_id")
+            liked_by = post['liked_by']
+            post['liked'] =  False
+            post_arr.append(post)
     return jsonify(post_arr)
 
 @app.route("/like", methods = ["POST"])
@@ -164,18 +173,19 @@ def like():
     print(like_dict)
     post = posts.find_one({'post_id': like_dict['post_id']})
     # post["likes"] = like_dict['likes']
-    auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
-    # hashed_token = hashlib.sha256(auth_token.encode())
-    # hashed_bytes = hashed_token.digest()
-    # auth_obj = users.find_one({"auth_token": hashed_bytes})
-    if auth_token in post['liked_by']:
-        print("HIT")
-        post['liked_by'].remove(auth_token)
-        post['likes'] -= 1
-    else:
-        print("HIT!")
-        post['liked_by'].append(auth_token)
-        post['likes'] += 1
+    try:
+        auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
+        cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+        if cur in post['liked_by']:
+            print("HIT")
+            post['liked_by'].remove(cur)
+            post['likes'] -= 1
+        else:
+            print("HIT!")
+            post['liked_by'].append(cur)
+            post['likes'] += 1
+    except:
+        None
     posts.replace_one({'post_id': like_dict['post_id']},post)
     return make_response("OK", 200)
 
