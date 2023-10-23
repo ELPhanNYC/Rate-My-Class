@@ -6,32 +6,37 @@ function chatMessageHTML(messageJSON) {
 function onLike(imgElement) {
     const likesElement = imgElement.previousElementSibling;
     let currentLikes = parseInt(likesElement.innerText);
-    
+    console.log(currentLikes)
     if (imgElement.src.endsWith("/static/images/non-shaded-thumbs-up.png")) {
         currentLikes++;
+        console.log(currentLikes)
         imgElement.src = "./static/images/thumb-up.png";
     } else {
         currentLikes--;
         imgElement.src = "./static/images/non-shaded-thumbs-up.png";
     }
-
-    likesElement.innerText = currentLikes.toString();
+    likesElement.innerText = currentLikes
+    console.log(currentLikes)
     return currentLikes
 }
 
+
 function likePostRequest(imgElement) {
-    let likes = 0;
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
-            likes = onLike(imgElement);
+            // The request is successful, the likes have already been updated by onLike
             console.log(this.response);
         }
     }
-    post_id = document.getElementById("post_id").innerText;
+    // Get the post_id from the clicked element
+    const post_id = document.getElementById("post_id").innerText;
+    // Call onLike to update the likes value
+    const updatedLikes = onLike(imgElement);
+    // Send the request with the updated likes value
     request.open("POST", "/like");
     request.setRequestHeader('Content-Type', 'application/json')
-    request.send(JSON.stringify({'post_id': post_id,'likes': likes}));
+    request.send(JSON.stringify({'post_id': post_id, 'likes': updatedLikes}));
 }
 
 function styleMessage(messageJSON) {

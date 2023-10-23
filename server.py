@@ -166,9 +166,12 @@ def like():
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token": hashed_bytes})
     if auth_obj["username"] in post['liked_by']:
+        print("HIT")
         post['liked_by'].remove(auth_obj['username'])
     else:
+        print("HIT!")
         post['liked_by'].append(auth_obj['username'])
+    posts.replace_one({'post_id': like_dict['post_id']},post)
     return make_response("OK", 200)
 
 if __name__ == '__main__':
