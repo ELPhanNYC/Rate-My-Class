@@ -160,7 +160,7 @@ def like():
     like_dict = request.get_json()
     print(like_dict)
     post = posts.find_one({'post_id': like_dict['post_id']})
-    post["likes"] = like_dict['likes']
+    # post["likes"] = like_dict['likes']
     auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
     # hashed_token = hashlib.sha256(auth_token.encode())
     # hashed_bytes = hashed_token.digest()
@@ -168,9 +168,11 @@ def like():
     if auth_token in post['liked_by']:
         print("HIT")
         post['liked_by'].remove(auth_token)
+        post['likes'] -= 1
     else:
         print("HIT!")
         post['liked_by'].append(auth_token)
+        post['likes'] += 1
     posts.replace_one({'post_id': like_dict['post_id']},post)
     return make_response("OK", 200)
 

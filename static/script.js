@@ -1,3 +1,5 @@
+pressed = false
+
 function chatMessageHTML(messageJSON) {
     let messageHTML = styleMessage(messageJSON)
     return messageHTML;
@@ -7,14 +9,14 @@ function onLike(imgElement) {
     const likesElement = imgElement.previousElementSibling;
     let currentLikes = parseInt(likesElement.innerText);
     console.log(currentLikes)
-    if (imgElement.src.endsWith("/static/images/non-shaded-thumbs-up.png")) {
-        currentLikes++;
-        console.log(currentLikes)
-        imgElement.src = "./static/images/thumb-up.png";
-    } else {
-        currentLikes--;
-        imgElement.src = "./static/images/non-shaded-thumbs-up.png";
-    }
+    // if (imgElement.src.endsWith("/static/images/non-shaded-thumbs-up.png")) {
+    //     currentLikes++;
+    //     console.log(currentLikes)
+    //     imgElement.src = "./static/images/thumb-up.png";
+    // } else {
+    //     currentLikes--;
+    //     imgElement.src = "./static/images/non-shaded-thumbs-up.png";
+    // }
     likesElement.innerText = currentLikes
     console.log(currentLikes)
     return currentLikes
@@ -33,11 +35,12 @@ function likePostRequest(imgElement) {
     const post_id = imgElement.id;
     console.log(post_id)
     // Call onLike to update the likes value
-    const updatedLikes = onLike(imgElement);
+    // const updatedLikes = onLike(imgElement);
     // Send the request with the updated likes value
+    pressed = !pressed
     request.open("POST", "/like");
     request.setRequestHeader('Content-Type', 'application/json')
-    request.send(JSON.stringify({'post_id': post_id, 'likes': updatedLikes}));
+    request.send(JSON.stringify({'post_id': post_id}));
 }
 
 function styleMessage(messageJSON) {
@@ -48,16 +51,9 @@ function styleMessage(messageJSON) {
     const difficulty = messageJSON.difficulty;
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
-    let token = "";
-    var cookies = document.cookie.split(";");
-    for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i].split("=");
-        if (cookie[0] == "auth_token") {
-            token = cookie[1];
-        }
-    }
     console.log(messageJSON.liked_by)
-    if (messageJSON.liked_by.includes(token) == true) {
+    if (pressed == true) {
+        console.log("triggered")
         isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
     } 
     else {
@@ -133,5 +129,5 @@ function updateChat() {
 
 function post_getter() {
     updateChat()
-    // setInterval(updateChat, 3000);
+    setInterval(updateChat, 3000);
 }
