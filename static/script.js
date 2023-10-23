@@ -42,13 +42,21 @@ function styleMessage(messageJSON) {
     const difficulty = messageJSON.difficulty;
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
-    console.log(messageJSON.liked_by)
+    const likedOrNot = messageJSON.liked;
+    //console.log(messageJSON.liked_by)
     //if (pressed == true) {
        // isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
     //} 
     //else {
-        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
+        //isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
     //}
+
+    if (likedOrNot == true) {
+       isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
+    } 
+    else {
+        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
+    }
 
     let card = `
     

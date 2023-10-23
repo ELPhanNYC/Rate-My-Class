@@ -149,9 +149,12 @@ def register():
 @app.route("/posts", methods = ['GET'])
 def get_posts():
     db_posts = posts.find({})
+    auth_token = request.cookies.get('auth_token')
     post_arr = []
     for post in db_posts:
         post.pop("_id")
+        liked_by = post['liked_by']
+        post['liked'] = auth_token in liked_by
         post_arr.append(post)
     return jsonify(post_arr)
 
