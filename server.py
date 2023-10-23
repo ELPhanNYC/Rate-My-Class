@@ -115,10 +115,10 @@ def rating():
         difficulty = unsafe_difficulty.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
         comments = unsafe_comments.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
 
-        #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments
+        #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
-        posts.insert_one({"post_id":post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments})
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []})
 
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/'
@@ -155,7 +155,21 @@ def get_posts():
         post_arr.append(post)
     return jsonify(post_arr)
 
-    
+@app.route("/like", methods = ["POST"])
+def like():
+    like_dict = request.get_json()
+    print(like_dict)
+    post = posts.find_one({'post_id': like_dict['post_id']})
+    post["likes"] = like_dict['likes']
+    auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
+    hashed_token = hashlib.sha256(auth_token.encode())
+    hashed_bytes = hashed_token.digest()
+    auth_obj = users.find_one({"auth_token": hashed_bytes})
+    if auth_obj["username"] in post['liked_by']:
+        post['liked_by'].remove(auth_obj['username'])
+    else:
+        post['liked_by'].append(auth_obj['username'])
+    return make_response("OK", 200)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0',port=8080)

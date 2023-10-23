@@ -206,5 +206,9 @@ a {
 .likes {
     display: flex;
     align-items: center;
-    padding-left: 1rem;
+    padding-left: 5rem;
+}
+
+#post_id {
+    display: none;
 }

@@ -4,7 +4,6 @@ function chatMessageHTML(messageJSON) {
 }
 
 function onLike(imgElement) {
-    console.log("Like clicked!")
     const likesElement = imgElement.previousElementSibling;
     let currentLikes = parseInt(likesElement.innerText);
     
@@ -17,31 +16,47 @@ function onLike(imgElement) {
     }
 
     likesElement.innerText = currentLikes.toString();
+    return currentLikes
+}
+
+function likePostRequest(imgElement) {
+    let likes = 0;
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            likes = onLike(imgElement);
+            console.log(this.response);
+        }
+    }
+    post_id = document.getElementById("post_id").innerText;
+    request.open("POST", "/like");
+    request.setRequestHeader('Content-Type', 'application/json')
+    request.send(JSON.stringify({'post_id': post_id,'likes': likes}));
 }
 
 function styleMessage(messageJSON) {
+    const post_id = messageJSON.post_id
     const username = messageJSON.username;
     const comments = messageJSON.comments;
     const professor = messageJSON.professor;
     const difficulty = messageJSON.difficulty;
     const rating = messageJSON.rating;
-
-    // Add these two fields to json response body
-    // Need to send a request to /like endpoint on click of the button
-    // const likes = messageJSON.likeCount;
-    // const likedByUser = messageJSON.likedByUser;
-    const likes = 7;
-    const likedByUser = false;
-
+    const likes = messageJSON.likes;
+    let likedByUser = false
+    if (messageJSON.liked_by.includes(username) == true) {
+        likedByUser = true;
+    } 
+    
     if (likedByUser == true) {
-        isLiked = '<img id="like" onclick="onLike(this)" src="./static/images/thumb-up.png" height="35px">';
+        isLiked = '<img id="like" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">';
     } else {
-        isLiked = '<img id="like" onclick="onLike(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">';
+        isLiked = '<img id="like" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">';
     }
 
     let card = `
     
     <div class="card">
+        <p id='post_id'>${post_id}</p>
         <div class = "card-header">
             <p>
                 User: ${username}
@@ -108,5 +123,5 @@ function updateChat() {
 
 function post_getter() {
     updateChat()
-    setInterval(updateChat, 1000);
+    setInterval(updateChat, 3000);
 }
