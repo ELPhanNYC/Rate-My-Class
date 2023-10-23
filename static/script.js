@@ -101,13 +101,24 @@ function styleMessage(messageJSON) {
 }
 
 function addMessageToChat(messageJSON) {
-    const chatMessages = document.getElementById("posts-container");
-    chatMessages.innerHTML += chatMessageHTML(messageJSON);
+    try{
+        const chatMessages = document.getElementById("posts-container");
+        chatMessages.innerHTML += chatMessageHTML(messageJSON);
+    }    
+    catch{
+        TypeError
+    }
 }
 
 function clearChat() {
-    const chatMessages = document.getElementById("posts-container");
+    try{
+        const chatMessages = document.getElementById("posts-container");
     chatMessages.innerHTML = "";
+    }
+    catch{
+        TypeError
+    }
+    
 }
 
 function updateChat() {
