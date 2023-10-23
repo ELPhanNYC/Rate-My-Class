@@ -1,4 +1,4 @@
-pressed = false
+// pressed = false
 
 function chatMessageHTML(messageJSON) {
     let messageHTML = styleMessage(messageJSON)
@@ -8,17 +8,8 @@ function chatMessageHTML(messageJSON) {
 function onLike(imgElement) {
     const likesElement = imgElement.previousElementSibling;
     let currentLikes = parseInt(likesElement.innerText);
-    console.log(currentLikes)
-    // if (imgElement.src.endsWith("/static/images/non-shaded-thumbs-up.png")) {
-    //     currentLikes++;
-    //     console.log(currentLikes)
-    //     imgElement.src = "./static/images/thumb-up.png";
-    // } else {
-    //     currentLikes--;
-    //     imgElement.src = "./static/images/non-shaded-thumbs-up.png";
-    // }
+
     likesElement.innerText = currentLikes
-    console.log(currentLikes)
     return currentLikes
 }
 
@@ -33,11 +24,11 @@ function likePostRequest(imgElement) {
     }
     // Get the post_id from the clicked element
     const post_id = imgElement.id;
-    console.log(post_id)
+
     // Call onLike to update the likes value
     // const updatedLikes = onLike(imgElement);
     // Send the request with the updated likes value
-    pressed = !pressed
+    // pressed = !pressed
     request.open("POST", "/like");
     request.setRequestHeader('Content-Type', 'application/json')
     request.send(JSON.stringify({'post_id': post_id}));
@@ -52,13 +43,12 @@ function styleMessage(messageJSON) {
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
     console.log(messageJSON.liked_by)
-    if (pressed == true) {
-        console.log("triggered")
-        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
-    } 
-    else {
+    //if (pressed == true) {
+       // isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
+    //} 
+    //else {
         isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
-    }
+    //}
 
     let card = `
     
