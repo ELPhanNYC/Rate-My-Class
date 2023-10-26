@@ -35,7 +35,6 @@ function likePostRequest(imgElement) {
 }
 
 function styleMessage(messageJSON) {
-    console.log(messageJSON)
     const post_id = messageJSON.post_id;
     const username = messageJSON.username;
     const comments = messageJSON.comments;

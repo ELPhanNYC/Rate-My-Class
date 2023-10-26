@@ -136,6 +136,11 @@ def register():
 
     #Escape HTML in username
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+    
+    if users.find_one({ "username" : user_escaped }) != None:
+        res = make_response("Moved Permanently", 301)
+        res.headers["Location"] = "/register_page"
+        return res
 
     #Salt and Hash password
     salt = bcrypt.gensalt()
