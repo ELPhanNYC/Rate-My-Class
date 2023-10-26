@@ -35,6 +35,7 @@ function likePostRequest(imgElement) {
 }
 
 function styleMessage(messageJSON) {
+    console.log(messageJSON)
     const post_id = messageJSON.post_id;
     const username = messageJSON.username;
     const comments = messageJSON.comments;
@@ -43,13 +44,15 @@ function styleMessage(messageJSON) {
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
     const likedOrNot = messageJSON.liked;
-    //console.log(messageJSON.liked_by)
-    //if (pressed == true) {
-       // isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
-    //} 
-    //else {
-        //isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
-    //}
+
+    let pfp = messageJSON.pfp;
+    let src = ""
+
+    if (pfp === "/static/images/default_pfp.jpg") {
+        src = "/get_default"
+    } else {
+        src = `/get_pfp/${pfp}`
+    }
 
     if (likedOrNot == true) {
        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
@@ -64,6 +67,7 @@ function styleMessage(messageJSON) {
         <p id='post_id'>${post_id}</p>
         <div class = "card-header">
             <p>
+                <img class="pfp" src=${src}/>
                 User: ${username}
                 Professor: ${professor}
             </p>

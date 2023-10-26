@@ -1,4 +1,5 @@
-from flask import Flask , render_template , request , make_response, send_file, jsonify
+from flask import Flask , render_template , request , make_response, send_file, jsonify, send_from_directory
+
 #from flask_pymongo import PyMongo #for using flask_pymongo
 from pymongo import MongoClient #for using pymongo 
 import secrets
@@ -6,6 +7,7 @@ import hashlib
 import bcrypt
 import json
 from pymongo import MongoClient
+import os
 
 app = Flask(__name__)
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
@@ -140,11 +142,29 @@ def register():
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
 
     #Input username and password into "users" collection
-    users.insert_one({"username":user_escaped, "password": hashed_pwd})
+    default_path = '/static/images/default_pfp.jpg'
+    users.insert_one({"username": user_escaped, "password": hashed_pwd, "pfp" : default_path})
+    
+    #Save pfp
+    pfp = request.files["profile_pic"]
+    if pfp:
+        folder = os.path.join(app.instance_path, 'pfp')
+        os.makedirs(folder, exist_ok=True)
+        pfp.save(os.path.join(folder, pfp.filename))
+        print(os.path.join(folder, pfp.filename).split("/"))
+        users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
+
+@app.route('/get_pfp/<filename>/', methods = ['GET'])
+def get_image(filename):
+    return send_from_directory("/app/instance/pfp/", filename)
+
+@app.route('/get_default/', methods = ['GET'])
+def get_default():
+    return send_from_directory("static/images", "default_pfp.jpg")
 
 @app.route("/posts", methods = ['GET'])
 def get_posts():
@@ -155,6 +175,8 @@ def get_posts():
         post.pop("_id")
         liked_by = post['liked_by']
         post['liked'] = auth_token in liked_by
+        pfp = users.find_one({"username" : post["username"]})["pfp"]
+        post['pfp'] = pfp
         post_arr.append(post)
     return jsonify(post_arr)
 

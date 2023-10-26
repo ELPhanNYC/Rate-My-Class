@@ -2,6 +2,13 @@ body {
     background: #005BBB;
 }
 
+.pfp {
+    display: flex;
+    flex-direction: column;
+    margin-left: 4rem;
+    padding-bottom: 20px;
+}
+
 .header {
     display: flex;
     justify-content: center;
@@ -13,6 +20,7 @@ body {
 .register-element {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-direction: column;
     border-radius: 20px;
     background-color: white;
@@ -22,7 +30,7 @@ body {
 
 .register-text {
     padding-top: 20px;
-    padding-bottom: 4rem;
+    padding-bottom: 1rem;
     font-family: montserrat;
     font-size: 3rem;
 }
