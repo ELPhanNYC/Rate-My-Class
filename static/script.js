@@ -9,12 +9,11 @@ function initWS() {
         console.log('WebSocket connection established');
       });
     // Called whenever data is received from the server over the WebSocket connection
-    socket.onmessage = function (ws_message) {
-        const message = JSON.parse(ws_message.data);
-        console.log(message)
-        const messageType = message.messageType
+    socket.on('response_post', (message) => {
+        // Handle the server's response message here
+        console.log(message);
         addMessageToChat(message);
-    }  
+    });
 }
 
 function sendPost(){
@@ -25,17 +24,14 @@ function sendPost(){
         difficulty: document.getElementById('rating-form-diff').value,
         comments: document.getElementById('rating-form-comments').value,
       };
-  
-    // Convert the form data to a JSON string
-    const jsonData = JSON.stringify(formData);
     // Send the JSON data via WebSocket
     socket.emit('submit_form', formData);
     window.location.replace(`http://${domain}:${port}`);
-    //ratingElem.focus();
 }
 
 
 function chatMessageHTML(messageJSON) {
+    console.log("chatMessageHTML")
     let messageHTML = styleMessage(messageJSON)
     return messageHTML;
 }
@@ -59,17 +55,13 @@ function likePostRequest(imgElement) {
     }
     // Get the post_id from the clicked element
     const post_id = imgElement.id;
-
-    // Call onLike to update the likes value
-    // const updatedLikes = onLike(imgElement);
-    // Send the request with the updated likes value
-    // pressed = !pressed
     request.open("POST", "/like");
     request.setRequestHeader('Content-Type', 'application/json')
     request.send(JSON.stringify({'post_id': post_id}));
 }
 
 function styleMessage(messageJSON) {
+    console.log("styleMessage")
     const post_id = messageJSON.post_id;
     const username = messageJSON.username;
     const comments = messageJSON.comments;
@@ -78,13 +70,6 @@ function styleMessage(messageJSON) {
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
     const likedOrNot = messageJSON.liked;
-    //console.log(messageJSON.liked_by)
-    //if (pressed == true) {
-       // isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
-    //} 
-    //else {
-        //isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
-    //}
 
     if (likedOrNot == true) {
        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
@@ -136,9 +121,12 @@ function styleMessage(messageJSON) {
 }
 
 function addMessageToChat(messageJSON) {
+    console.log("Outside addMessage")
     try{
+        console.log("Inside addMessage")
         const chatMessages = document.getElementById("posts-container");
-        chatMessages.innerHTML += chatMessageHTML(messageJSON);
+        console.log("Adding to the innerHTML")
+        chatMessages.innerHTML = chatMessageHTML(messageJSON) + chatMessages.innerHTML;
     }    
     catch{
         TypeError
@@ -157,11 +145,13 @@ function clearChat() {
 }
 
 function updateChat() {
+    console.log("updateChat")
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {
             clearChat();
             const messages = JSON.parse(this.response);
+            console.log(messages.reverse())
             for (const message of messages.reverse()) {
                 addMessageToChat(message);
             }
@@ -173,6 +163,5 @@ function updateChat() {
 
 function post_getter() {
     updateChat()
-    // setInterval(updateChat, 3000);# no more polling
     initWS();
 }

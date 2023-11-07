@@ -17,9 +17,32 @@ users = db["users"]
 
 @socketio.on('submit_form')
 def handle_form_submission(data):
-    # Process the form data here (e.g., save it to a database)
-    print("Submit Form Test")
-    print(f"{data} is of type {type(data)}")
+    # verify user using authentication token
+    auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
+    hashed_token = hashlib.sha256(auth_token.encode())
+    hashed_bytes = hashed_token.digest()
+    auth_obj = users.find_one({"auth_token" : hashed_bytes})
+    
+    #retrieve post info and store it into "posts" collection
+    if auth_obj != None:
+        post_dict = data
+        unsafe_prof = post_dict.get("professor")
+        unsafe_rating = post_dict.get("rating")
+        unsafe_difficulty = post_dict.get("difficulty")
+        unsafe_comments = post_dict.get("comments")
+
+        #escape html for all user input
+        prof = unsafe_prof.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+        rating = unsafe_rating.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+        difficulty = unsafe_difficulty.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+        comments = unsafe_comments.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+
+        #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
+        post_id = auth_token = secrets.token_urlsafe(16)
+        username = auth_obj["username"]
+        post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []})
+        socketio.emit('response_post', post)
 
 @app.route("/", methods = ['GET'])
 def index_page():
