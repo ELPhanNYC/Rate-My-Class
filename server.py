@@ -1,6 +1,6 @@
 from flask import Flask , render_template , request , make_response, send_file, jsonify
-#from flask_pymongo import PyMongo #for using flask_pymongo
-from pymongo import MongoClient #for using pymongo 
+from flask_socketio import SocketIO
+from pymongo import MongoClient # For using PyMongo 
 import secrets
 import hashlib
 import bcrypt
@@ -8,12 +8,17 @@ import json
 from pymongo import MongoClient
 
 app = Flask(__name__)
+socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
 mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
 
+@socketio.on('submit_form')
+def handle_form_submission(data):
+    # Process the form data here (e.g., save it to a database)
+    print(f"{data} is of type {type(data)}")
 
 @app.route("/", methods = ['GET'])
 def index_page():
@@ -190,4 +195,5 @@ def like():
     return make_response("OK", 200)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0',port=8080)
+    # app.run(host='0.0.0.0',port=8080)
+    socketio.run(app, host='0.0.0.0', port=8080, allow_unsafe_werkzeug=True)

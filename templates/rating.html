@@ -7,7 +7,7 @@
 {% block body %}
 <div class="header">
     <a href = "url_for('index_page')"><img class ="home-logo" src ="{{ url_for('static', filename='images/rmc-logo.svg') }}" width="300" height="300"></a>
-    <form action="/rating" method="post" enctype="application/x-www-form-urlencoded">
+    <form enctype="application/x-www-form-urlencoded">
         <div class="rating-element"> 
             <div class="rating-text">Create a Rating</div>
             <input class="info" placeholder="Professor" id="rating-form-prof" type="text" name="professor"></input>
@@ -16,7 +16,7 @@
                 <input class="info-values" placeholder="Difficulty (1-5)" id="rating-form-diff" type="text" name="difficulty"></input>
             </div>
             <textarea class="info-comment" placeholder="Comments" id="rating-form-comments" type="text" name="comments"></textarea>
-            <input type="submit" class="rating" value="Submit"></input>
+            <input onclick = "sendPost()" type="submit" class="rating" value="Submit"></input>
         </div>
     </form>
 </div>

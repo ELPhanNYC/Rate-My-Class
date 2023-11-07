@@ -1,4 +1,34 @@
-// pressed = false
+function initWS() {
+    // Establish a WebSocket connection with the server
+    const socket = io.connect('http://0.0.0.0:8080');
+    socket.on('connect', () => {
+        console.log('WebSocket connection established');
+      });
+    // Called whenever data is received from the server over the WebSocket connection
+    socket.onmessage = function (ws_message) {
+        const message = JSON.parse(ws_message.data);
+        console.log(message)
+        const messageType = message.messageType
+        addMessageToChat(message);
+    }  
+}
+
+function sendPost(){
+    const ratingElem = document.getElementById("rating-element");
+    const formData = {
+        professor: document.getElementById('rating-form-prof').value,
+        rating: document.getElementById('rating-form-rating').value,
+        difficulty: document.getElementById('rating-form-diff').value,
+        comments: document.getElementById('rating-form-comments').value,
+      };
+  
+    // Convert the form data to a JSON string
+    const jsonData = JSON.stringify(formData);
+    // Send the JSON data via WebSocket
+    socket.emit('submit_form', formData);
+    ratingElem.focus();
+}
+
 
 function chatMessageHTML(messageJSON) {
     let messageHTML = styleMessage(messageJSON)
@@ -138,5 +168,6 @@ function updateChat() {
 
 function post_getter() {
     updateChat()
-    setInterval(updateChat, 3000);
+    // setInterval(updateChat, 3000);# no more polling
+    initWS();
 }
