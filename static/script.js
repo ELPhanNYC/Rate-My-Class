@@ -1,6 +1,10 @@
+let domain = 'localhost'
+let port = '8080'
+let socket;
+
 function initWS() {
     // Establish a WebSocket connection with the server
-    const socket = io.connect('http://0.0.0.0:8080');
+    socket = io.connect(`http://${domain}:${port}`);
     socket.on('connect', () => {
         console.log('WebSocket connection established');
       });
@@ -26,7 +30,8 @@ function sendPost(){
     const jsonData = JSON.stringify(formData);
     // Send the JSON data via WebSocket
     socket.emit('submit_form', formData);
-    ratingElem.focus();
+    window.location.replace(`http://${domain}:${port}`);
+    //ratingElem.focus();
 }
 
 

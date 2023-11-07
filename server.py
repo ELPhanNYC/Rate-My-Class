@@ -18,6 +18,7 @@ users = db["users"]
 @socketio.on('submit_form')
 def handle_form_submission(data):
     # Process the form data here (e.g., save it to a database)
+    print("Submit Form Test")
     print(f"{data} is of type {type(data)}")
 
 @app.route("/", methods = ['GET'])
