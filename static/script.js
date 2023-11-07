@@ -31,7 +31,6 @@ function sendPost(){
 
 
 function chatMessageHTML(messageJSON) {
-    console.log("chatMessageHTML")
     let messageHTML = styleMessage(messageJSON)
     return messageHTML;
 }
@@ -61,7 +60,6 @@ function likePostRequest(imgElement) {
 }
 
 function styleMessage(messageJSON) {
-    console.log("styleMessage")
     const post_id = messageJSON.post_id;
     const username = messageJSON.username;
     const comments = messageJSON.comments;
@@ -121,11 +119,8 @@ function styleMessage(messageJSON) {
 }
 
 function addMessageToChat(messageJSON) {
-    console.log("Outside addMessage")
     try{
-        console.log("Inside addMessage")
         const chatMessages = document.getElementById("posts-container");
-        console.log("Adding to the innerHTML")
         chatMessages.innerHTML = chatMessageHTML(messageJSON) + chatMessages.innerHTML;
     }    
     catch{
@@ -136,7 +131,7 @@ function addMessageToChat(messageJSON) {
 function clearChat() {
     try{
         const chatMessages = document.getElementById("posts-container");
-    chatMessages.innerHTML = "";
+        chatMessages.innerHTML = "";
     }
     catch{
         TypeError
@@ -145,7 +140,6 @@ function clearChat() {
 }
 
 function updateChat() {
-    console.log("updateChat")
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
         if (this.readyState === 4 && this.status === 200) {

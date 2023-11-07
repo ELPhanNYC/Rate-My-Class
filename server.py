@@ -122,39 +122,6 @@ def login():
         return response
     return make_response("Login Failed",400)
 
-@app.route("/rating", methods=['POST'])
-def rating():
-    #verify user using authentication token
-    auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
-    hashed_token = hashlib.sha256(auth_token.encode())
-    hashed_bytes = hashed_token.digest()
-    auth_obj = users.find_one({"auth_token" : hashed_bytes})
-    
-    #retrieve post info and store it into "posts" collection
-    if auth_obj != None:
-        post_dict = dict(request.form)
-        unsafe_prof = post_dict.get("professor")
-        unsafe_rating = post_dict.get("rating")
-        unsafe_difficulty = post_dict.get("difficulty")
-        unsafe_comments = post_dict.get("comments")
-
-        #escape html for all user input
-        prof = unsafe_prof.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
-        rating = unsafe_rating.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
-        difficulty = unsafe_difficulty.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
-        comments = unsafe_comments.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
-
-        #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
-        post_id = auth_token = secrets.token_urlsafe(16)
-        username = auth_obj["username"]
-        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []})
-
-    response = make_response("Moved Permanently", 301)
-    response.headers["Location"] = '/'
-    return response
-    
-
-
 @app.route("/register", methods=['POST'])
 def register():
     register_dict = dict(request.form)
@@ -182,7 +149,6 @@ def get_posts():
     try:
         auth_token = request.cookies.get('auth_token')
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
-        print("username is "+ cur)
         for post in db_posts:
             post.pop("_id")
             liked_by = post['liked_by']
@@ -206,11 +172,9 @@ def like():
         auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
         if cur in post['liked_by']:
-            print("HIT")
             post['liked_by'].remove(cur)
             post['likes'] -= 1
         else:
-            print("HIT!")
             post['liked_by'].append(cur)
             post['likes'] += 1
     except:
