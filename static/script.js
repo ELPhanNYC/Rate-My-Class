@@ -69,6 +69,15 @@ function styleMessage(messageJSON) {
     const likes = messageJSON.likes;
     const likedOrNot = messageJSON.liked;
 
+    let pfp = messageJSON.pfp;
+    let src = ""
+
+    if (pfp === "/static/images/default_pfp.jpg") {
+        src = "/get_default"
+    } else {
+        src = `/get_pfp/${pfp}`
+    }
+
     if (likedOrNot == true) {
        isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/thumb-up.png" height="35px">`;
     } 
@@ -82,6 +91,7 @@ function styleMessage(messageJSON) {
         <p id='post_id'>${post_id}</p>
         <div class = "card-header">
             <p>
+                <img class="pfp" src=${src}/>
                 User: ${username}
                 Professor: ${professor}
             </p>

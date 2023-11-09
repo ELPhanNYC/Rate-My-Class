@@ -1,11 +1,13 @@
 from flask import Flask , render_template , request , make_response, send_file, jsonify
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
+
 import secrets
 import hashlib
 import bcrypt
 import json
 from pymongo import MongoClient
+import os
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
@@ -130,22 +132,47 @@ def register():
 
     #Escape HTML in username
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
+    
+    if users.find_one({ "username" : user_escaped }) != None:
+        res = make_response("Moved Permanently", 301)
+        res.headers["Location"] = "/register_page"
+        return res
 
     #Salt and Hash password
     salt = bcrypt.gensalt()
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
 
     #Input username and password into "users" collection
-    users.insert_one({"username":user_escaped, "password": hashed_pwd})
+    default_path = '/static/images/default_pfp.jpg'
+    users.insert_one({"username": user_escaped, "password": hashed_pwd, "pfp" : default_path})
+    
+    #Save pfp
+    pfp = request.files["profile_pic"]
+    if pfp:
+        folder = os.path.join(app.instance_path, 'pfp')
+        os.makedirs(folder, exist_ok=True)
+        pfp.save(os.path.join(folder, pfp.filename))
+        print(os.path.join(folder, pfp.filename).split("/"))
+        users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
 
+@app.route('/get_pfp/<filename>/', methods = ['GET'])
+def get_image(filename):
+    filename = filename.replace("/","")
+    return send_from_directory("/app/instance/pfp/", filename)
+
+@app.route('/get_default/', methods = ['GET'])
+def get_default():
+    return send_from_directory("static/images", "default_pfp.jpg")
+
 @app.route("/posts", methods = ['GET'])
 def get_posts():
     db_posts = posts.find({})
     post_arr = []
+
     try:
         auth_token = request.cookies.get('auth_token')
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
@@ -153,13 +180,18 @@ def get_posts():
             post.pop("_id")
             liked_by = post['liked_by']
             post['liked'] =  cur in liked_by
+            pfp = users.find_one({"username" : post["username"]})["pfp"]
+            post['pfp'] = pfp
             post_arr.append(post)
     except:
         for post in db_posts:
             post.pop("_id")
             liked_by = post['liked_by']
             post['liked'] =  False
+            pfp = users.find_one({"username" : post["username"]})["pfp"]
+            post['pfp'] = pfp
             post_arr.append(post)
+
     return jsonify(post_arr)
 
 @app.route("/like", methods = ["POST"])
