@@ -6,7 +6,7 @@
 <div class="header">
 
     <a href = "{{url_for('index_page')}}"><img class ="home-logo" src ="{{ url_for('static', filename='images/rmc-logo.svg') }}" width="300" height="300"></a>
-    <form action="/register" method="post" enctype="application/x-www-form-urlencoded">
+    <form action="/register" method="post" enctype="multipart/form-data">
         <div class="register-element"> 
             <div class="register-text">Register</div>
             <div class="pfp">

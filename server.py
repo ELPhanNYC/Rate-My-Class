@@ -141,7 +141,7 @@ def register():
     #Salt and Hash password
     salt = bcrypt.gensalt()
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
-
+    
     #Input username and password into "users" collection
     default_path = '/static/images/default_pfp.jpg'
     users.insert_one({"username": user_escaped, "password": hashed_pwd, "pfp" : default_path})
