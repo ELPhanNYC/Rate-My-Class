@@ -5,6 +5,8 @@ import secrets
 import hashlib
 import bcrypt
 import json
+import datetime
+from datetime import timedelta
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -14,6 +16,31 @@ mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
+
+def subtract_time(t1,t2):
+    h1, m1, s1 = t1.split(':')
+    h2, m2, s2 = t2.split(':')
+    time1 = timedelta(hours=int(h1), minutes=int(m1), seconds=int(s1))
+    time2 = timedelta(hours=int(h2), minutes=int(m2), seconds=int(s2))
+    time_difference = time2 - time1
+    return str(time_difference)
+
+@socketio.on('update_age')
+def update_age():
+    time_data = []
+    #do the math for time since creation on server side then send for all posts
+    #for all posts, send back { "post_id" : post_id , "time_since_post" : time_since_post}
+    #on frontend for each post update the respective post
+    
+    posts_ = posts.find({})
+    for p in posts_:
+        time_data.append(
+            {
+                "post_id" : p["post_id"],
+                "time_since_post" : subtract_time(p["created_at"],datetime.datetime.now().strftime("%H:%M:%S"))
+            }
+        )
+    socketio.emit('update_age', time_data)
 
 @socketio.on('submit_form')
 def handle_form_submission(data):
@@ -41,7 +68,7 @@ def handle_form_submission(data):
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
         post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
-        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []})
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
         socketio.emit('response_post', post)
 
 @app.route("/", methods = ['GET'])
