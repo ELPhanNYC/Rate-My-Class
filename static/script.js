@@ -2,18 +2,42 @@ let domain = 'localhost'
 let port = '8080'
 let socket;
 
+function getTime() {
+    socket.emit('update_age');
+}
+
+function updatePostsTime(time_data) {
+    console.log(time_data)
+    for (o of time_data) {
+        let curr_id = o["post_id"]
+        for (post of document.getElementById('posts-container').childNodes) {
+            if (post.className === 'card') {
+                let id = post.querySelector('#post_id').innerHTML
+                if (curr_id === id) {
+                    post.querySelector('.time').innerHTML = o["time_since_post"]
+                }
+            }
+        }
+    }
+}
+
 function initWS() {
     // Establish a WebSocket connection with the server
     socket = io.connect(`http://${domain}:${port}`);
     socket.on('connect', () => {
+        setInterval(getTime,1000)
         console.log('WebSocket connection established');
-      });
+    });
     // Called whenever data is received from the server over the WebSocket connection
     socket.on('response_post', (message) => {
         // Handle the server's response message here
         console.log(message);
         addMessageToChat(message);
     });
+
+    socket.on('update_age', (time_data) => {
+        updatePostsTime(time_data);
+    })
 }
 
 function sendPost(){
@@ -95,6 +119,7 @@ function styleMessage(messageJSON) {
                 User: ${username}
                 Professor: ${professor}
             </p>
+            <div class="time">00:00:00</div>
         </div>
         <div class = "content">
             <div class = "card-item">
