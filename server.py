@@ -1,4 +1,4 @@
-from flask import Flask , render_template , request , make_response, send_file, jsonify
+from flask import Flask , render_template , request , make_response, send_file, jsonify, send_from_directory
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
 
