@@ -165,6 +165,7 @@ def register():
 
 @app.route('/get_pfp/<filename>/', methods = ['GET'])
 def get_image(filename):
+    filename = filename.replace("/","")
     return send_from_directory("/app/instance/pfp/", filename)
 
 @app.route('/get_default/', methods = ['GET'])
