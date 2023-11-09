@@ -2,7 +2,6 @@
 
 {% block css %}
 <link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='css/rating.css') }}">
 {% endblock css %}
 
 {% block body %}
@@ -35,7 +34,7 @@
         
     </div>
 
-    <!-- <div class="search-element"> 
+    <div class="search-element"> 
         <div class="description"> 
             Find detailed feedback from other students <br> about ALL of your classes! 
         </div>
@@ -43,22 +42,6 @@
             <input class="search-bar" placeholder="Enter the course code or name"></input>
             <div class="find-button">Find it!</div>
         </div>
-    </div> -->
-
-    <div class="header">
-        <a href = "url_for('index_page')"><img class ="home-logo" src ="{{ url_for('static', filename='images/rmc-logo.svg') }}" width="300" height="300"></a>
-        <form action="/rating" method="post" enctype="application/x-www-form-urlencoded">
-            <div class="rating-element"> 
-                <div class="rating-text">Create a Rating</div>
-                <input class="info" placeholder="Professor" id="rating-form-prof" type="text" name="professor"></input>
-                <div class = "value-inputs">
-                    <input class="info-values" placeholder="Rating (1-5)" id="rating-form-rating" type="text" name="rating"></input>
-                    <input class="info-values" placeholder="Difficulty (1-5)" id="rating-form-diff" type="text" name="difficulty"></input>
-                </div>
-                <textarea class="info-comment" placeholder="Comments" id="rating-form-comments" type="text" name="comments"></textarea>
-                <input type="submit" class="rating" value="Submit"></input>
-            </div>
-        </form>
     </div>
 
     <!-- NEW CODE -->

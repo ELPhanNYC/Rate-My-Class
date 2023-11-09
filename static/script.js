@@ -1,4 +1,34 @@
-// pressed = false
+let domain = 'localhost'
+let port = '8080'
+let socket;
+
+function initWS() {
+    // Establish a WebSocket connection with the server
+    socket = io.connect(`http://${domain}:${port}`);
+    socket.on('connect', () => {
+        console.log('WebSocket connection established');
+      });
+    // Called whenever data is received from the server over the WebSocket connection
+    socket.on('response_post', (message) => {
+        // Handle the server's response message here
+        console.log(message);
+        addMessageToChat(message);
+    });
+}
+
+function sendPost(){
+    const ratingElem = document.getElementById("rating-element");
+    const formData = {
+        professor: document.getElementById('rating-form-prof').value,
+        rating: document.getElementById('rating-form-rating').value,
+        difficulty: document.getElementById('rating-form-diff').value,
+        comments: document.getElementById('rating-form-comments').value,
+      };
+    // Send the JSON data via WebSocket
+    socket.emit('submit_form', formData);
+    window.location.replace(`http://${domain}:${port}`);
+}
+
 
 function chatMessageHTML(messageJSON) {
     let messageHTML = styleMessage(messageJSON)
@@ -24,11 +54,6 @@ function likePostRequest(imgElement) {
     }
     // Get the post_id from the clicked element
     const post_id = imgElement.id;
-
-    // Call onLike to update the likes value
-    // const updatedLikes = onLike(imgElement);
-    // Send the request with the updated likes value
-    // pressed = !pressed
     request.open("POST", "/like");
     request.setRequestHeader('Content-Type', 'application/json')
     request.send(JSON.stringify({'post_id': post_id}));
@@ -104,13 +129,24 @@ function styleMessage(messageJSON) {
 }
 
 function addMessageToChat(messageJSON) {
-    const chatMessages = document.getElementById("posts-container");
-    chatMessages.innerHTML += chatMessageHTML(messageJSON);
+    try{
+        const chatMessages = document.getElementById("posts-container");
+        chatMessages.innerHTML = chatMessageHTML(messageJSON) + chatMessages.innerHTML;
+    }    
+    catch{
+        TypeError
+    }
 }
 
 function clearChat() {
-    const chatMessages = document.getElementById("posts-container");
-    chatMessages.innerHTML = "";
+    try{
+        const chatMessages = document.getElementById("posts-container");
+        chatMessages.innerHTML = "";
+    }
+    catch{
+        TypeError
+    }
+    
 }
 
 function updateChat() {
@@ -119,6 +155,7 @@ function updateChat() {
         if (this.readyState === 4 && this.status === 200) {
             clearChat();
             const messages = JSON.parse(this.response);
+            console.log(messages.reverse())
             for (const message of messages.reverse()) {
                 addMessageToChat(message);
             }
@@ -130,5 +167,5 @@ function updateChat() {
 
 function post_getter() {
     updateChat()
-    setInterval(updateChat, 3000);
+    initWS();
 }
