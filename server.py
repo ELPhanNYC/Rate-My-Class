@@ -10,6 +10,7 @@ import datetime
 from datetime import timedelta
 from pymongo import MongoClient
 import os
+import time
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
@@ -18,6 +19,8 @@ mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
+
+
 
 def subtract_time(t1,t2):
     h1, m1, s1 = t1.split(':')
@@ -71,7 +74,16 @@ def handle_form_submission(data):
         username = auth_obj["username"]
         post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
         posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
+        
+        #delay for 30 sec, updateing the countdown timer
+        for seconds_left in range(30, 0, -1): #countdown starting at 30secs
+            socketio.emit('update_timer', seconds_left) #TODO: add this socket to js so that it updates the countdown timer on frontend
+            time.sleep(1) #sleep for a second for 30 times
+   
+        #send post after delay
         socketio.emit('response_post', post)
+        
+        
 
 @app.route("/", methods = ['GET'])
 def index_page():

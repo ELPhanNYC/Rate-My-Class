@@ -28,16 +28,23 @@ function initWS() {
         setInterval(getTime,1000)
         console.log('WebSocket connection established');
     });
+
+    //Constantly being alled for 30 sec to delay post
+    socket.on('update_timer', (seconds_left) => {
+        //TODO: update countdown timer so user can see how many sec left
+    });
+
     // Called whenever data is received from the server over the WebSocket connection
     socket.on('response_post', (message) => {
         // Handle the server's response message here
         console.log(message);
         addMessageToChat(message);
+      
     });
-
     socket.on('update_age', (time_data) => {
         updatePostsTime(time_data);
     })
+
 }
 
 function sendPost(){
