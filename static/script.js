@@ -2,12 +2,28 @@ let domain = 'localhost'
 let port = '8080'
 let socket;
 
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+})
 function getTime() {
     socket.emit('update_age');
 }
-
+function updateRatingTime(data) {
+    console.log(data);
+    let curr_id = data['post_id'];
+    let seconds = data['available_time'];
+    for (post of document.getElementById('posts-container').childNodes) {
+        if (post.className === 'card') {
+            let id = post.querySelector('#post_id').innerHTML
+            if (curr_id === id) {
+                post.querySelector('.countdown_time').innerHTML = seconds;
+            }
+        }
+    }
+}
 function updatePostsTime(time_data) {
-    console.log(time_data)
+    //console.log(time_data)
     for (o of time_data) {
         let curr_id = o["post_id"]
         for (post of document.getElementById('posts-container').childNodes) {
@@ -30,8 +46,10 @@ function initWS() {
     });
 
     //Constantly being alled for 30 sec to delay post
-    socket.on('update_timer', (seconds_left) => {
+    socket.on('update_timer', (data) => {
         //TODO: update countdown timer so user can see how many sec left
+        //console.log(data)
+        updateRatingTime(data)
     });
 
     // Called whenever data is received from the server over the WebSocket connection
@@ -39,7 +57,7 @@ function initWS() {
         // Handle the server's response message here
         console.log(message);
         addMessageToChat(message);
-      
+    
     });
     socket.on('update_age', (time_data) => {
         updatePostsTime(time_data);
@@ -126,6 +144,7 @@ function styleMessage(messageJSON) {
                 User: ${username}
                 Professor: ${professor}
             </p>
+            <div class="countdown_time">00:00:00</div>
             <div class="time">00:00:00</div>
         </div>
         <div class = "content">
@@ -197,7 +216,7 @@ function updateChat() {
     request.send();
 }
 
-function post_getter() {
-    updateChat()
+function post_getter() { //called when the index page is loaded
+    updateChat()//before set interval() to updatechat
     initWS();
 }

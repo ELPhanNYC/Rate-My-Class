@@ -20,9 +20,7 @@ db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
 
-
-
-def subtract_time(t1,t2):
+def subtract_time(t1: str, t2: str) -> str:
     h1, m1, s1 = t1.split(':')
     h2, m2, s2 = t2.split(':')
     time1 = timedelta(hours=int(h1), minutes=int(m1), seconds=int(s1))
@@ -30,6 +28,9 @@ def subtract_time(t1,t2):
     time_difference = time2 - time1
     return str(time_difference)
 
+###################################################################
+################### Websocket routes ##############################
+###################################################################
 @socketio.on('update_age')
 def update_age():
     time_data = []
@@ -75,20 +76,32 @@ def handle_form_submission(data):
         post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
         posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
         
+        #total_seconds = 30
         #delay for 30 sec, updateing the countdown timer
-        for seconds_left in range(30, 0, -1): #countdown starting at 30secs
-            socketio.emit('update_timer', seconds_left) #TODO: add this socket to js so that it updates the countdown timer on frontend
-            time.sleep(1) #sleep for a second for 30 times
-   
+
+        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
+        update_countdown(post_id, end_time)
+        
         #send post after delay
         socketio.emit('response_post', post)
-        
+
+def update_countdown(post_id, end_time: datetime):
+    while datetime.datetime.now() < end_time:
+        remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
+        #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
+        # Sending the remaining time to the client using JSON
+        socketio.emit('update_timer', ({
+            'post_id': post_id,
+            'available_time': remaining_time,
+        }))
+        print('socket send the countdown timer: {}'.format(remaining_time))
+        time.sleep(1)
+        #FIX: after the end of count down, emit the post again, which is not expected behavior
+
         
 
 @app.route("/", methods = ['GET'])
 def index_page():
-    #UPDATE pass in username for authenticated user to the index page
-    #TODO: beautify the frontend
     #verify user using authentication token
     is_authed = request.cookies.get("auth_token")
     username = ""
