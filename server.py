@@ -80,8 +80,8 @@ def handle_form_submission(data):
         #delay for 30 sec, updateing the countdown timer
 
         end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
-        update_countdown(post_id, end_time)
-        
+        bool = update_countdown(post_id, end_time)
+        if bool: return
         #send post after delay
         socketio.emit('response_post', post)
 
@@ -96,7 +96,11 @@ def update_countdown(post_id, end_time: datetime):
         }))
         print('socket send the countdown timer: {}'.format(remaining_time))
         time.sleep(1)
-        #FIX: after the end of count down, emit the post again, which is not expected behavior
+    socketio.emit('update_timer', ({
+            'post_id': post_id,
+            'available_time': '00:00:00'
+        }))
+    return True
 
         
 
