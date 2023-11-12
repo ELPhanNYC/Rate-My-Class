@@ -58,6 +58,10 @@ function initWS() {
     socket.on('update_age', (time_data) => {
         updatePostsTime(time_data);
     })
+    socket.on('update_like', (message) => {
+        console.log(message)
+        updateChat()
+    })
 
 }
 
@@ -162,7 +166,7 @@ function styleMessage(messageJSON) {
                 </div>
             </div>
             <div class="likes">
-                <p style="font-size:35px;">${likes}</p>
+                <p style="font-size:35px;" >${likes}</p>
                 ${isLiked}
             </div>
         </div>

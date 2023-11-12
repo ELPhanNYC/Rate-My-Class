@@ -266,7 +266,8 @@ def like():
             post['likes'] += 1
     except:
         None
-    posts.replace_one({'post_id': like_dict['post_id']},post)
+    posts.replace_one({'post_id': like_dict['post_id']}, post)
+    socketio.emit('update_like', {'response': True})
     return make_response("OK", 200)
 
 if __name__ == '__main__':
