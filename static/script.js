@@ -2,10 +2,6 @@ let domain = 'localhost'
 let port = '8080'
 let socket;
 
-
-document.addEventListener('DOMContentLoaded', () => {
-    
-})
 function getTime() {
     socket.emit('update_age');
 }
@@ -78,21 +74,6 @@ function sendPost(){
     window.location.replace(`http://${domain}:${port}`);
 }
 
-
-function chatMessageHTML(messageJSON) {
-    let messageHTML = styleMessage(messageJSON)
-    return messageHTML;
-}
-
-function onLike(imgElement) {
-    const likesElement = imgElement.previousElementSibling;
-    let currentLikes = parseInt(likesElement.innerText);
-
-    likesElement.innerText = currentLikes
-    return currentLikes
-}
-
-
 function likePostRequest(imgElement) {
     const request = new XMLHttpRequest();
     request.onreadystatechange = function () {
@@ -106,6 +87,20 @@ function likePostRequest(imgElement) {
     request.open("POST", "/like");
     request.setRequestHeader('Content-Type', 'application/json')
     request.send(JSON.stringify({'post_id': post_id}));
+}
+
+// function onLike(imgElement) {
+//     const likesElement = imgElement.previousElementSibling;
+//     let currentLikes = parseInt(likesElement.innerText);
+
+//     likesElement.innerText = currentLikes
+//     return currentLikes
+// }
+
+//Message functions
+function chatMessageHTML(messageJSON) {
+    let messageHTML = styleMessage(messageJSON)
+    return messageHTML;
 }
 
 function styleMessage(messageJSON) {
