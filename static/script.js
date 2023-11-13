@@ -13,7 +13,7 @@ function updateRatingTime(data) {
         if (post.className === 'card') {
             let id = post.querySelector('#post_id').innerHTML
             if (curr_id === id) {
-                post.querySelector('.countdown_time').innerHTML = seconds;
+                post.querySelector('.countdown_time').innerHTML = "Time left to rate post: " + seconds;
             }
         }
     }
@@ -26,7 +26,7 @@ function updatePostsTime(time_data) {
             if (post.className === 'card') {
                 let id = post.querySelector('#post_id').innerHTML
                 if (curr_id === id) {
-                    post.querySelector('.time').innerHTML = o["time_since_post"]
+                    post.querySelector('.time').innerHTML = "Post has been up for: "+ o["time_since_post"]
                 }
             }
         }
@@ -146,7 +146,11 @@ function styleMessage(messageJSON) {
                     User: ${username}
                     Professor: ${professor}
                 </p>
+             
+                
                 <div class="countdown_time">00:00:00</div>
+            
+                
                 <div class="time">00:00:00</div>
             </div>
             <div class = "content">
@@ -187,7 +191,7 @@ function styleMessage(messageJSON) {
                     User: ${username}
                     Professor: ${professor}
                 </p>
-                <div class="countdown_time">00:00:00</div>
+                <div class="countdown_time">Time left to rate is over.</div>
                 <div class="time">00:00:00</div>
             </div>
             <div class = "content">
