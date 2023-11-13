@@ -36,12 +36,14 @@ def update_countdown(post_id, end_time: datetime):
         socketio.emit('update_timer', ({
             'post_id': post_id,
             'available_time': remaining_time,
+            'available': False,
         }))
         print('socket send the countdown timer: {}'.format(remaining_time))
         time.sleep(1)
     socketio.emit('update_timer', ({
             'post_id': post_id,
-            'available_time': '00:00:00'
+            'available_time': '00:00:00',
+            'available': True,
         }))
     
 ##################################################################
@@ -89,8 +91,17 @@ def handle_form_submission(data):
         #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
-        post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
+        post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []} #hide the likes
         posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
+        
+        created_at = datetime.datetime.now().strftime("%H:%M:%S")
+        time_format = "%H:%M:%S"
+        created_at = datetime.datetime.strptime(created_at, time_format)
+        end_time = created_at + datetime.timedelta(seconds=10)
+        post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
+
+        pfp = users.find_one({"username" : post["username"]})["pfp"]
+        post['pfp'] = pfp
         
         socketio.emit('response_post', post)
         #total_seconds = 30
@@ -98,7 +109,18 @@ def handle_form_submission(data):
         end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         update_countdown(post_id, end_time)
         #send post after delay
-        
+
+# @socketio.on('connect')
+# def handle_connect():
+#     #only authenticated user can like post
+#     auth_token = request.cookies.get("auth_token")
+#     id = request.sid
+#     try:
+#         cur_user = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+#         users.update_one({"username" : cur_user }, {"$set": {"sid": id}}, upsert=True)
+#         socketio.emit({'userid': id})
+#     except:
+#         return
 ##################################################################
 ######################### Default routes #########################
 ##################################################################
@@ -231,11 +253,17 @@ def get_posts():
         auth_token = request.cookies.get('auth_token')
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
         for post in db_posts:
+            created_at = post["created_at"]
+            time_format = "%H:%M:%S"
+            created_at = datetime.datetime.strptime(created_at, time_format)
+            end_time = created_at + datetime.timedelta(seconds=10)
+
             post.pop("_id")
             liked_by = post['liked_by']
             post['liked'] =  cur in liked_by
             pfp = users.find_one({"username" : post["username"]})["pfp"]
             post['pfp'] = pfp
+            post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
             post_arr.append(post)
     except:
         for post in db_posts:
@@ -258,6 +286,7 @@ def like():
         #only authenticated user can like post
         auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+
         if cur in post['liked_by']:
             post['liked_by'].remove(cur)
             post['likes'] -= 1
@@ -267,7 +296,7 @@ def like():
     except:
         None
     posts.replace_one({'post_id': like_dict['post_id']}, post)
-    socketio.emit('update_like', {'response': True})
+    socketio.emit('update_like', {'success': True})
     return make_response("OK", 200)
 
 if __name__ == '__main__':
