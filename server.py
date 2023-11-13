@@ -28,9 +28,25 @@ def subtract_time(t1: str, t2: str) -> str:
     time_difference = time2 - time1
     return str(time_difference)
 
-###################################################################
-################### Websocket routes ##############################
-###################################################################
+def update_countdown(post_id, end_time: datetime):
+    while datetime.datetime.now() < end_time:
+        remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
+        #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
+        # Sending the remaining time to the client using JSON
+        socketio.emit('update_timer', ({
+            'post_id': post_id,
+            'available_time': remaining_time,
+        }))
+        print('socket send the countdown timer: {}'.format(remaining_time))
+        time.sleep(1)
+    socketio.emit('update_timer', ({
+            'post_id': post_id,
+            'available_time': '00:00:00'
+        }))
+    
+##################################################################
+######################## Websocket routes ########################
+##################################################################
 @socketio.on('update_age')
 def update_age():
     time_data = []
@@ -76,50 +92,32 @@ def handle_form_submission(data):
         post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
         posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
         
+        
         #total_seconds = 30
         #delay for 30 sec, updateing the countdown timer
-
         end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
-        bool = update_countdown(post_id, end_time)
-        if bool: return
+        update_countdown(post_id, end_time)
+        socketio.emit('response_post', post)
         #send post after delay
-        socketio.emit('my_event', {data:post}, broadcast=True, include_self=False)
-        # socketio.emit('response_post', post)
-
-def update_countdown(post_id, end_time: datetime):
-    while datetime.datetime.now() < end_time:
-        remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
-        #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
-        # Sending the remaining time to the client using JSON
-        socketio.emit('update_timer', ({
-            'post_id': post_id,
-            'available_time': remaining_time,
-        }))
-        print('socket send the countdown timer: {}'.format(remaining_time))
-        time.sleep(1)
-    socketio.emit('update_timer', ({
-            'post_id': post_id,
-            'available_time': '00:00:00'
-        }))
-    return True
-
         
-
+##################################################################
+######################### Default routes #########################
+##################################################################
 @app.route("/", methods = ['GET'])
 def index_page():
-    #verify user using authentication token
     is_authed = request.cookies.get("auth_token")
     username = ""
     rating_posts = []
+    #retrieve username if authenticated
     if is_authed:
         hashed_token = hashlib.sha256(is_authed.encode())
         hashed_bytes = hashed_token.digest()
         auth_obj = users.find_one({"auth_token" : hashed_bytes})
         if auth_obj:
             username = auth_obj['username']
-    cursor_post = posts.find({})
-    rating_posts = [post for post in cursor_post]
-    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, posts = rating_posts)
+    #cursor_post = posts.find({})
+    #rating_posts = [post for post in cursor_post]
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username) #posts=rating_posts
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
@@ -230,7 +228,7 @@ def get_posts():
     db_posts = posts.find({})
     post_arr = []
 
-    try:
+    try: #if the user is authenticated, all posts will show whether this user like this post or not.
         auth_token = request.cookies.get('auth_token')
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
         for post in db_posts:
@@ -258,7 +256,8 @@ def like():
     post = posts.find_one({'post_id': like_dict['post_id']})
     # post["likes"] = like_dict['likes']
     try:
-        auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
+        #only authenticated user can like post
+        auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
         if cur in post['liked_by']:
             post['liked_by'].remove(cur)
@@ -268,7 +267,8 @@ def like():
             post['likes'] += 1
     except:
         None
-    posts.replace_one({'post_id': like_dict['post_id']},post)
+    posts.replace_one({'post_id': like_dict['post_id']}, post)
+    socketio.emit('update_like', {'response': True})
     return make_response("OK", 200)
 
 if __name__ == '__main__':
