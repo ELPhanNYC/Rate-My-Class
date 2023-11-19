@@ -12,6 +12,11 @@ from pymongo import MongoClient
 import os
 import time
 
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
@@ -19,6 +24,43 @@ mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
+
+''' GOOGLE EMAIL API CODE '''
+
+# Environment Variables, DO NOT PUSH THE "client secret.json" FILE! ADD A PLACEHOLDER!
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+CLIENT_SECRET_FILE = './rate-my-class client secret.json'  # Replace with your client secret file
+
+def send_verification_email(user_email, verification_link):
+    # Verifying credentials with the API Token!
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json')
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
+            creds = flow.run_local_server(port=0)
+        # Save the credentials for the next run
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    # GMAIL API Service
+    service = build('gmail', 'v1', credentials=creds)
+    print("Service obtained from API!")
+    # Creating E-mail
+    message = {'to': user_email, 'subject': "Verify Your Email for Rate my Class!", 'body': {'text': f"Hello {user_email}, click the following link to verify your email: {verification_link}"}}
+    send_message(service, "me", message)
+
+def send_message(service, sender, message):
+    # Send an email message
+    try:
+        message = service.users().messages().send(userId=sender, body=message).execute()
+    except Exception as error:
+        print(f"An error occurred: {error}")
+        return None
+    
+''' --------------------- '''
 
 def subtract_time(t1: str, t2: str) -> str:
     h1, m1, s1 = t1.split(':')
@@ -128,17 +170,19 @@ def handle_form_submission(data):
 def index_page():
     is_authed = request.cookies.get("auth_token")
     username = ""
+    status = ""
     rating_posts = []
-    #retrieve username if authenticated
+    # retrieve username if authenticated and user verification status
     if is_authed:
         hashed_token = hashlib.sha256(is_authed.encode())
         hashed_bytes = hashed_token.digest()
         auth_obj = users.find_one({"auth_token" : hashed_bytes})
         if auth_obj:
             username = auth_obj['username']
+            status = auth_obj['status']
     #cursor_post = posts.find({})
     #rating_posts = [post for post in cursor_post]
-    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username) #posts=rating_posts
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, verified = f"Email Verified: {status}") #posts=rating_posts
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
@@ -205,6 +249,7 @@ def register():
     register_dict = dict(request.form)
     user = register_dict.get("username_reg")
     pwd = register_dict.get("password_reg")
+    email = register_dict.get("email_reg")
 
     #Escape HTML in username
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
@@ -217,10 +262,14 @@ def register():
     #Salt and Hash password
     salt = bcrypt.gensalt()
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
-    
-    #Input username and password into "users" collection
+
+    # Create verification token fro URL
+    url_token = secrets.token_urlsafe(16)
+    hashed_token = hashlib.sha256(url_token.encode())
+    hashed_bytes = hashed_token.digest()
+    #Input username and password into "users" collection alongside email verification status and email address
     default_path = '/static/images/default_pfp.jpg'
-    users.insert_one({"username": user_escaped, "password": hashed_pwd, "pfp" : default_path})
+    users.insert_one({"username": user_escaped, "password": hashed_pwd, "email": email, "pfp" : default_path,"verification_token": hashed_bytes, "status": False})
     
     #Save pfp
     pfp = request.files["profile_pic"]
@@ -231,9 +280,27 @@ def register():
         print(os.path.join(folder, pfp.filename).split("/"))
         users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
+    ''' GOOGLE EMAIL API CODE '''
+    send_verification_email(email, f"http://localhost:8080/verify?token={hashed_bytes}")
+    ''' --------------------- '''
+
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
+
+@app.route('/verify')
+def verify():
+    token = request.args.get('token')
+    user_obj = users.find_one({"verification_token": token})
+    if user_obj:
+        users.update_one({"verification_token": token}, {"$set" : {"status" : True}})
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
+        return response
+    else:
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
+        return response
 
 @app.route('/get_pfp/<filename>/', methods = ['GET'])
 def get_image(filename):

@@ -17,7 +17,13 @@
             <a href="{{ url_for('logout')}}">
                 <div class="rating">Logout</div>
             </a>
-            <div class="welcome">Welcome back {{username}}!</div>
+            <div class="welcome">
+                <p class>Welcome back {{username}}!</p>
+                <br>
+                <div class = "drop-content">
+                    <p>{{verified}}</p>
+                </div>
+            </div>
             {% else %}
             <!--link to login page-->
             <a href = "{{ url_for('login_page')}}">
