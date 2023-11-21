@@ -12,9 +12,20 @@ function updatePostsTime(time_data) {
         let curr_id = o["post_id"]
         for (post of document.getElementById('posts-container').childNodes) {
             if (post.className === 'card') {
-                let id = post.querySelector('#post_id').innerHTML
+                let id = post.querySelector('#post_id').innerHTML;
                 if (curr_id === id) {
-                    post.querySelector('.time').innerHTML = o["time_since_post"]
+                    time_since = o["time_since_post"];
+
+                    let hours = time_since.split(":")[0];
+                    let minutes = time_since.split(":")[1];
+                    let days = Math.floor(Number(hours) / 24);
+                    let remaining = Math.floor(Number(hours) % 24);
+
+                    if (days > 0) {
+                        post.querySelector('.time').innerHTML = `${days} days, ${remaining} hours ago`;
+                    } else {
+                        post.querySelector('.time').innerHTML = `${hours} hours, ${minutes} minutes ago`;
+                    }
                 }
             }
         }

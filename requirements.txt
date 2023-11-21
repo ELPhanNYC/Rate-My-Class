@@ -2,3 +2,4 @@ flask
 flask_pymongo
 flask_socketio
 bcrypt
+Flask-Limiter
