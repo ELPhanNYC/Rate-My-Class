@@ -1,3 +1,5 @@
+import base64
+import webbrowser
 from flask import Flask , render_template , request , make_response, send_file, jsonify, send_from_directory
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
@@ -12,7 +14,9 @@ from pymongo import MongoClient
 import os
 import time
 
-from google.oauth2.credentials import Credentials
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
@@ -29,32 +33,46 @@ users = db["users"]
 
 # Environment Variables, DO NOT PUSH THE "client secret.json" FILE! ADD A PLACEHOLDER!
 SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-CLIENT_SECRET_FILE = './rate-my-class client secret.json'  # Replace with your client secret file
+CLIENT_SECRET_FILE = './rate-my-class 2023.json'  # Replace with your client secret file
+
+def create_message(to, subject, body):
+    # Create a MIME message
+    message = MIMEMultipart()
+    message['to'] = to
+    message['subject'] = subject
+
+    # Add the text part of the message
+    text_part = MIMEText(body, 'plain')
+    message.attach(text_part)
+
+    # Encode the MIME message to base64
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+    
+    return {"raw": raw_message}
 
 def send_verification_email(user_email, verification_link):
-    # Verifying credentials with the API Token!
-    creds = None
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json')
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
+    creds = service_account.Credentials.from_service_account_file(
+        CLIENT_SECRET_FILE, scopes=SCOPES
+    )
+    creds = creds.with_subject("ratemyclass.app@gmail.com")
+    
+    # Check if the credentials are expired, and refresh if necessary
+    if creds and creds.expired:
+        creds.refresh(Request())
+    
     # GMAIL API Service
     service = build('gmail', 'v1', credentials=creds)
     print("Service obtained from API!")
+
     # Creating E-mail
-    message = {'to': user_email, 'subject': "Verify Your Email for Rate my Class!", 'body': {'text': f"Hello {user_email}, click the following link to verify your email: {verification_link}"}}
+    message = create_message(user_email, 'Verify Your Email for Rate my Class!', f"Hello {user_email}, click the following link to verify your email: {verification_link}")
+
     send_message(service, "me", message)
 
 def send_message(service, sender, message):
     # Send an email message
     try:
+        print(f"Request: {service.users().messages().send(userId=sender, body=message).to_json()}")
         message = service.users().messages().send(userId=sender, body=message).execute()
     except Exception as error:
         print(f"An error occurred: {error}")
@@ -281,7 +299,9 @@ def register():
         users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
     ''' GOOGLE EMAIL API CODE '''
+    print("Sending the E-mail...")
     send_verification_email(email, f"http://localhost:8080/verify?token={hashed_bytes}")
+    print("Email sent!")
     ''' --------------------- '''
 
     response = make_response("Moved Permanently", 301)
