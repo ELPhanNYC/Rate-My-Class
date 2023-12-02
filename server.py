@@ -1,5 +1,4 @@
 import base64
-import webbrowser
 from flask import Flask , render_template , request , make_response, send_file, jsonify, send_from_directory
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
@@ -7,7 +6,6 @@ from pymongo import MongoClient # For using PyMongo
 import secrets
 import hashlib
 import bcrypt
-import json
 import datetime
 from datetime import timedelta
 from pymongo import MongoClient
@@ -32,7 +30,7 @@ users = db["users"]
 ''' GOOGLE EMAIL API CODE '''
 
 # Environment Variables, DO NOT PUSH THE "client secret.json" FILE! ADD A PLACEHOLDER!
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+SCOPES = ['https://www.googleapis.com/auth/gmail.send','https://mail.google.com/']
 CLIENT_SECRET_FILE = './rate-my-class 2023.json'  # Replace with your client secret file
 
 def create_message(to, subject, body):
@@ -51,13 +49,15 @@ def create_message(to, subject, body):
     return {"raw": raw_message}
 
 def send_verification_email(user_email, verification_link):
+    print("Trying to send an email!")
     creds = service_account.Credentials.from_service_account_file(
-        CLIENT_SECRET_FILE, scopes=SCOPES
+        CLIENT_SECRET_FILE, scopes=SCOPES, subject="ratemyclass.app@gmail.com"
     )
     creds = creds.with_subject("ratemyclass.app@gmail.com")
     
     # Check if the credentials are expired, and refresh if necessary
     if creds and creds.expired:
+        print("Expired creds")
         creds.refresh(Request())
     
     # GMAIL API Service
