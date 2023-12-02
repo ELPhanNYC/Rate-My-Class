@@ -71,8 +71,10 @@ function initWS() {
 
 function sendPost(){
     const ratingElem = document.getElementById("rating-element");
+    
     const formData = {
         professor: document.getElementById('rating-form-prof').value,
+        course: document.querySelector('.selected-option').innerText.replace("Selected: ", ""), //NEW
         rating: document.getElementById('rating-form-rating').value,
         difficulty: document.getElementById('rating-form-diff').value,
         comments: document.getElementById('rating-form-comments').value,
@@ -112,6 +114,7 @@ function styleMessage(messageJSON) {
     const username = messageJSON.username;
     const comments = messageJSON.comments;
     const professor = messageJSON.professor;
+    const course = messageJSON.course; 
     const difficulty = messageJSON.difficulty;
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
@@ -144,6 +147,7 @@ function styleMessage(messageJSON) {
                 <p>
                     <img class="pfp" src=${src}/>
                     User: ${username}
+                    Course: ${course}
                     Professor: ${professor}
                 </p>
              
@@ -189,6 +193,7 @@ function styleMessage(messageJSON) {
                 <p>
                     <img class="pfp" src=${src}/>
                     User: ${username}
+                    Course: ${course}
                     Professor: ${professor}
                 </p>
                 <div class="countdown_time">Time left to rate is over.</div>
@@ -272,4 +277,34 @@ function post_getter() { //called when the index page is loaded
     updateChat();
     //before set interval() to updatechat
     
+}
+
+//new
+let isOpen = false;
+
+function toggleDropdown() {
+    const options = document.getElementById('options');
+    isOpen = !isOpen;
+    options.style.display = isOpen ? 'block' : 'none';
+}
+
+function filterOptions() {
+    const searchTerm = document.querySelector('.options input').value.toLowerCase();
+    const options = document.querySelectorAll('.option');
+
+    options.forEach(option => {
+        const label = option.innerText.toLowerCase();
+        if (label.includes(searchTerm)) {
+            option.style.display = 'block';
+        } else {
+             option.style.display = 'none';
+        }
+    });
+}
+
+function selectOption(value) {
+    const selectedOption = document.querySelector('.selected-option');
+    selectedOption.innerText = `Selected: ${value}`;
+    selectOption.value = value
+    toggleDropdown();
 }
