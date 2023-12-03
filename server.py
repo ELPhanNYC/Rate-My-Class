@@ -3,6 +3,9 @@ from flask import Flask , render_template , request , make_response, send_file, 
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
 
+# from flask_limiter import Limiter
+# from flask_limiter.util import get_remote_address <-- will use localhost every time need to forward ip thru nginx
+
 import secrets
 import hashlib
 import bcrypt
@@ -19,12 +22,44 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
+# limiter = Limiter(
+#     app=app,
+#     key_func=get_remote_address,
+#     application_limits=['50/10seconds'],
+#     storage_uri="memory://",
+# )
+
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
 mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
+
+
+def add_time(post,time):
+    h, m, s = time.split(':')
+    h = int(h)
+    m = int(m)
+    s = int(s)
+    
+    s += 1
+    if s >= 60:
+        s = 0
+        m += 1
+        if m >= 60:
+            m = 0
+            h += 1
+    
+    s = str(s).zfill(2)
+    m = str(m).zfill(2)
+    h = str(h).zfill(2)
+    
+    res = h + ":" + m + ":" + s
+    posts.update_one({"post_id" : post["post_id"]}, {"$set" : {"time_since_posted" : res}}, upsert=True)
+    
+    return res
+    
 
 URL = 'localhost:8080' #Change when we are deployed to real domain name
 PROTOCOL = 'http'      #Also change protocol to https
@@ -42,31 +77,23 @@ def send_email(user_email,token):
         print(e.message)
 
 
-def subtract_time(t1: str, t2: str) -> str:
-    h1, m1, s1 = t1.split(':')
-    h2, m2, s2 = t2.split(':')
-    time1 = timedelta(hours=int(h1), minutes=int(m1), seconds=int(s1))
-    time2 = timedelta(hours=int(h2), minutes=int(m2), seconds=int(s2))
-    time_difference = time2 - time1
-    return str(time_difference)
-
-def update_countdown(post_id, end_time: datetime):
-    while datetime.datetime.now() < end_time:
-        remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
-        #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
-        # Sending the remaining time to the client using JSON
-        socketio.emit('update_timer', ({
-            'post_id': post_id,
-            'available_time': remaining_time,
-            'available': False,
-        }))
-        print('socket send the countdown timer: {}'.format(remaining_time))
-        time.sleep(1)
-    socketio.emit('update_timer', ({
-            'post_id': post_id,
-            'available_time': '00:00:00',
-            'available': True,
-        }))
+# def update_countdown(post_id, end_time: datetime):
+#     while datetime.datetime.now() < end_time:
+#         remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
+#         #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
+#         # Sending the remaining time to the client using JSON
+#         socketio.emit('update_timer', ({
+#             'post_id': post_id,
+#             'available_time': remaining_time,
+#             'available': False,
+#         }))
+#         print('socket send the countdown timer: {}'.format(remaining_time))
+#         time.sleep(1)
+#     socketio.emit('update_timer', ({
+#             'post_id': post_id,
+#             'available_time': '00:00:00',
+#             'available': True,
+#         }))
     
 ##################################################################
 ######################## Websocket routes ########################
@@ -79,7 +106,7 @@ def update_age():
         time_data.append(
             {
                 "post_id" : p["post_id"],
-                "time_since_post" : subtract_time(p["created_at"],datetime.datetime.now().strftime("%H:%M:%S"))
+                "time_since_post" : add_time(p,p["time_since_posted"])
             }
         )
     socketio.emit('update_age', time_data)
@@ -112,9 +139,10 @@ def handle_form_submission(data):
         #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
-        post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []} #hide the likes
-        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
-        
+
+        post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S"), "time_since_posted" : "00:00:00"})
+
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
         created_at = datetime.datetime.strptime(created_at, time_format)
