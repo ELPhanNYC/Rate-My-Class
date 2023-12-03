@@ -30,6 +30,14 @@ users = db["users"]
 URL = 'localhost:8080' #Change when we are deployed to real domain name
 PROTOCOL = 'http'      #Also change protocol to https
 
+# Dictionary to store request count and timestamp for each IP
+ip_request_count = {}
+
+# Rate limit configuration
+max_requests = 50
+time_window = 10  # in seconds
+ban_duration = 30  # in seconds
+
 def send_email(user_email,token):
     message = Mail(
     from_email='ratemyclass.app@gmail.com',
@@ -182,6 +190,45 @@ def handle_form_submission(data):
 ##################################################################
 @app.route("/", methods = ['GET'])
 def index_page():
+    client_ip = request.remote_addr
+
+    # Check if the IP is in the dictionary
+    if client_ip in ip_request_count:
+        # Get the timestamp of the last request
+        last_request_time = ip_request_count[client_ip]['timestamp']
+
+        # Calculate the time difference
+        time_difference = datetime.datetime.now() - last_request_time
+
+        # If the time difference is within the time window, increment the request count
+        if ip_request_count[client_ip]['banned']:
+            print(ip_request_count)
+            print(str(ip_request_count[client_ip]['ban_end_time']))
+            print(str(datetime.datetime.now()))
+            if datetime.datetime.now() < ip_request_count[client_ip]['ban_end_time']:
+                resp = make_response('Too many requests', 429)
+                return resp
+            else:
+                ip_request_count[client_ip] = {'count': 1, 'timestamp': datetime.datetime.now(), 'banned': False}
+        elif time_difference < timedelta(seconds=time_window):
+            ip_request_count[client_ip]['count'] += 1
+
+            # If the request count exceeds the limit, block the IP for the ban duration
+            if ip_request_count[client_ip]['count'] > max_requests:
+                ip_request_count[client_ip]['banned'] = True
+                ban_end_time = last_request_time + timedelta(seconds=ban_duration)
+                ip_request_count[client_ip]['ban_end_time'] = ban_end_time
+                resp = make_response('Too many requests', 429)
+                return resp
+
+        # If the time difference is outside the time window, reset the request count
+        else:
+            ip_request_count[client_ip] = {'count': 1, 'timestamp': datetime.datetime.now(), 'banned': False}
+
+    # If the IP is not in the dictionary, add it with the current timestamp
+    else:
+        ip_request_count[client_ip] = {'count': 1, 'timestamp': datetime.datetime.now(), 'banned': False}
+    
     is_authed = request.cookies.get("auth_token")
     username = ""
     status = ""
