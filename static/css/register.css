@@ -30,7 +30,7 @@ body {
     flex-direction: column;
     border-radius: 20px;
     background-color: white;
-    height: 35rem;
+    height: auto;
     width: 30rem;
 }
 
@@ -55,7 +55,8 @@ body {
 }
 
 .have-account {
-    padding-top: 11rem;
+    padding-top: 8rem;
+    padding-bottom: 1rem;
 }
 
 .register:hover {

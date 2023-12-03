@@ -16,7 +16,7 @@ body {
     flex-direction: column;
     border-radius: 20px;
     background-color: white;
-    height: 35rem;
+    height: auto;
     width: 30rem;
 }
 
@@ -44,7 +44,8 @@ body {
 }
 
 .have-account {
-    padding-top: 11rem;
+    padding-top: 8rem;
+    padding-bottom: 1rem;
 }
 
 .info {
@@ -73,4 +74,11 @@ input::placeholder   {
 a {
     text-decoration: none;  /* Removes the underline */
     color: inherit;         /* Makes the link use the inherited color, i.e., no default blue color */
+}
+
+.warning {
+    display: flex;
+    color: red;
+    text-align: center;
+    margin-top: 2rem;
 }

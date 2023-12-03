@@ -119,13 +119,6 @@ input {
     text-align: center;
 }
 
-
-
-
-
-
-
-
 .custom-select {
     /* position: relative;
     width: 200px;
@@ -178,8 +171,6 @@ input {
     cursor: pointer;
   }
 
-
-
   .option:hover {
     background-color: #f0f0f0;
   }
@@ -188,4 +179,11 @@ input {
     padding: 8px;
     font-size: 20px;
     cursor: pointer;
+}
+
+.warning {
+    display: flex;
+    color: red;
+    text-align: center;
+    margin-top: 2rem;
 }
