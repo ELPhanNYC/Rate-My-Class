@@ -21,7 +21,6 @@ load_dotenv()
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-#
 mongo = MongoClient('mongodb', username='root', password='examplepass')
 #mongo = MongoClient("localhost")
 db = mongo["rmc"]
@@ -42,7 +41,8 @@ def send_email(user_email,token):
         response = sg.send(message)
     except Exception as e:
         #Need error handling*
-        print(e.message)
+        #print(e.message) this print statement creates an error
+        print("error")
         
 def subtract_time(t1,t2):
     h1, m1, s1 = t1.split(':')
@@ -132,7 +132,7 @@ def handle_form_submission(data):
         post_dict = data
         unsafe_prof = post_dict.get("professor")
         unsafe_course = post_dict.get("course")
-        print("-------COURSE-------",unsafe_course)
+        #print("-------COURSE-------",unsafe_course)
         unsafe_rating = post_dict.get("rating")
         unsafe_difficulty = post_dict.get("difficulty")
         unsafe_comments = post_dict.get("comments")
@@ -148,7 +148,7 @@ def handle_form_submission(data):
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
         post = {"post_id": post_id, "username": username, "professor": prof,"course": course, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []} #hide the likes
-        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S"), "time_since_posted" : "00:00:00"})
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "course": course,"rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S"), "time_since_posted" : "00:00:00"})
         
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
