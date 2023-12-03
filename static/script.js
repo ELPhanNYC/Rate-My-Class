@@ -71,6 +71,7 @@ function initWS() {
 
 function sendPost(){
     const ratingElem = document.getElementById("rating-element");
+    console.log("SEND POST FUNCTION CALLED")
     
     const formData = {
         professor: document.getElementById('rating-form-prof').value,
@@ -80,6 +81,8 @@ function sendPost(){
         comments: document.getElementById('rating-form-comments').value,
       };
     // Send the JSON data via WebSocket
+    console.log("formData")
+    console.log(formData)
     socket.emit('submit_form', formData);
     window.location.replace(`http://${domain}:${port}`);
 }
@@ -318,28 +321,43 @@ function filterChat(value) { //same thing as update chat but only get the select
             clearChat();
             const messages = JSON.parse(this.response);
             console.log(messages.reverse())
-            if (value == "ALL CLASSES"){ //load all classes
-                for (const message of messages.reverse()) {
-                        addMessageToChat(message);  
+            for (const message of messages.reverse()) {
+                if (message.course == value){ //only add message if its the same as the selected course
+                    addMessageToChat(message);
                 }
-            }
-            else{
-                for (const message of messages.reverse()) {
-                    if (message.course == value){ //only add message if its the same as the selected course
-                        addMessageToChat(message);
-                    }
-                    
-                }
-            }
-            
+              
+            }         
         }
     }
     request.open("GET", "/filterPosts");
     request.send();
 }
 
+function sendAllChats() {
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            clearChat();
+            const messages = JSON.parse(this.response);
+            console.log(messages.reverse())
+            for (const message of messages.reverse()) {
+                addMessageToChat(message);
+            }
+        }
+    }
+    request.open("GET", "/sendAllPosts");
+    request.send();
+}
+
 
 function filterCourse(value){ //value = course number
     selectOption(value); //update search bar html
-    filterChat(value); //filter the posts
+    
+    if (value != "ALL CLASSES"){
+        filterChat(value); //filter the posts
+    }
+    
+    else{
+        sendAllChats();
+    }
 }
