@@ -12,12 +12,11 @@ from pymongo import MongoClient
 import os
 import time
 
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from google.oauth2 import service_account
-from google.auth.transport.requests import Request
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
@@ -27,58 +26,21 @@ db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
 
-''' GOOGLE EMAIL API CODE '''
+URL = 'localhost:8080' #Change when we are deployed to real domain name
+PROTOCOL = 'http'      #Also change protocol to https
 
-# Environment Variables, DO NOT PUSH THE "client secret.json" FILE! ADD A PLACEHOLDER!
-SCOPES = ['https://www.googleapis.com/auth/gmail.send','https://mail.google.com/']
-CLIENT_SECRET_FILE = './rate-my-class 2023.json'  # Replace with your client secret file
-
-def create_message(to, subject, body):
-    # Create a MIME message
-    message = MIMEMultipart()
-    message['to'] = to
-    message['subject'] = subject
-
-    # Add the text part of the message
-    text_part = MIMEText(body, 'plain')
-    message.attach(text_part)
-
-    # Encode the MIME message to base64
-    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
-    
-    return {"raw": raw_message}
-
-def send_verification_email(user_email, verification_link):
-    print("Trying to send an email!")
-    creds = service_account.Credentials.from_service_account_file(
-        CLIENT_SECRET_FILE, scopes=SCOPES, subject="ratemyclass.app@gmail.com"
-    )
-    creds = creds.with_subject("ratemyclass.app@gmail.com")
-    
-    # Check if the credentials are expired, and refresh if necessary
-    if creds and creds.expired:
-        print("Expired creds")
-        creds.refresh(Request())
-    
-    # GMAIL API Service
-    service = build('gmail', 'v1', credentials=creds)
-    print("Service obtained from API!")
-
-    # Creating E-mail
-    message = create_message(user_email, 'Verify Your Email for Rate my Class!', f"Hello {user_email}, click the following link to verify your email: {verification_link}")
-
-    send_message(service, "me", message)
-
-def send_message(service, sender, message):
-    # Send an email message
+def send_email(user_email,token):
+    message = Mail(
+    from_email='ratemyclass.app@gmail.com',
+    to_emails=user_email,
+    subject='Verify Your Email',
+    html_content=f'<strong>Please Click here to verify your email -> {PROTOCOL}://{URL}/verify/{token}</strong>')
     try:
-        print(f"Request: {service.users().messages().send(userId=sender, body=message).to_json()}")
-        message = service.users().messages().send(userId=sender, body=message).execute()
-    except Exception as error:
-        print(f"An error occurred: {error}")
-        return None
-    
-''' --------------------- '''
+        sg = SendGridAPIClient(os.environ.get('SG_KEY'))
+        response = sg.send(message)
+    except Exception as e:
+        #Need error handling*
+        print(e.message)
 
 def subtract_time(t1: str, t2: str) -> str:
     h1, m1, s1 = t1.split(':')
@@ -133,6 +95,9 @@ def handle_form_submission(data):
     hashed_token = hashlib.sha256(auth_token.encode())
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token" : hashed_bytes})
+    
+    if auth_obj["status"] == False:
+        return
     
     #retrieve post info and store it into "posts" collection
     if auth_obj != None:
@@ -280,6 +245,9 @@ def register():
     #Salt and Hash password
     salt = bcrypt.gensalt()
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
+    
+    #Email Verification Token
+    email_token = secrets.token_urlsafe(32)
 
     # Create verification token fro URL
     url_token = secrets.token_urlsafe(16)
@@ -287,8 +255,7 @@ def register():
     hashed_bytes = hashed_token.digest()
     #Input username and password into "users" collection alongside email verification status and email address
     default_path = '/static/images/default_pfp.jpg'
-    users.insert_one({"username": user_escaped, "password": hashed_pwd, "email": email, "pfp" : default_path,"verification_token": hashed_bytes, "status": False})
-    
+    users.insert_one({"username": user_escaped, "password": hashed_pwd, "email": email, "pfp" : default_path,"status": False, "email_token" : email_token})
     #Save pfp
     pfp = request.files["profile_pic"]
     if pfp:
@@ -298,22 +265,17 @@ def register():
         print(os.path.join(folder, pfp.filename).split("/"))
         users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
-    ''' GOOGLE EMAIL API CODE '''
-    print("Sending the E-mail...")
-    send_verification_email(email, f"http://localhost:8080/verify?token={hashed_bytes}")
-    print("Email sent!")
-    ''' --------------------- '''
+    send_email(email,email_token)
 
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
 
-@app.route('/verify')
-def verify():
-    token = request.args.get('token')
-    user_obj = users.find_one({"verification_token": token})
+@app.route('/verify/<token>')
+def verify(token):
+    user_obj = users.find_one({"email_token": token})
     if user_obj:
-        users.update_one({"verification_token": token}, {"$set" : {"status" : True}})
+        users.update_one({"email_token": token}, {"$set" : {"status" : True}},upsert=True)
         response = make_response("Moved Permanently",301)
         response.headers["Location"] = '/'
         return response
@@ -374,6 +336,9 @@ def like():
         auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
 
+        if cur["status"] == False:
+            return
+        
         created_at = post["created_at"]
         time_format = "%H:%M:%S"
         created_at = datetime.datetime.strptime(created_at, time_format)
