@@ -13,7 +13,7 @@ function updateRatingTime(data) {
         if (post.className === 'card') {
             let id = post.querySelector('#post_id').innerHTML
             if (curr_id === id) {
-                post.querySelector('.countdown_time').innerHTML = "Time left to rate post: " + seconds;
+                post.querySelector('.countdown_time').innerHTML = "Like count will show in: " + seconds;
             }
         }
     }
@@ -26,7 +26,7 @@ function updatePostsTime(time_data) {
             if (post.className === 'card') {
                 let id = post.querySelector('#post_id').innerHTML
                 if (curr_id === id) {
-                    post.querySelector('.time').innerHTML = "Post has been up for: "+ o["time_since_post"]
+                    post.querySelector('.time').innerHTML = "Post age: " + o["time_since_post"];
                 }
             }
         }
@@ -35,17 +35,21 @@ function updatePostsTime(time_data) {
 
 function initWS() {
     // Establish a WebSocket connection with the server
-    socket = io.connect(`http://${domain}:${port}`);
-    socket.on('connect', () => {
+    socket = io.connect(`http://${domain}:${port}`, {transports: ['websocket']});
+    socket.on('connect', (message) => {
         setInterval(getTime,1000)
         console.log('WebSocket connection established');
+        console.log(message);
     });
 
     //Constantly being alled for 30 sec to delay post
     socket.on('update_timer', (data) => {
-        //TODO: update countdown timer so user can see how many sec left
-        //console.log(data)
-        updateRatingTime(data)
+        if (data['available'] == false){
+            updateRatingTime(data);
+        }else if (data['available'] == true){
+            updateChat()
+        }
+        
     });
 
     // Called whenever data is received from the server over the WebSocket connection
@@ -60,7 +64,7 @@ function initWS() {
     })
     socket.on('update_like', (message) => {
         console.log(message)
-        updateChat()
+        updateChat() //updateChat for all messages
     })
 
 }
@@ -102,12 +106,8 @@ function likePostRequest(imgElement) {
 // }
 
 //Message functions
-function chatMessageHTML(messageJSON) {
-    let messageHTML = styleMessage(messageJSON)
-    return messageHTML;
-}
-
 function styleMessage(messageJSON) {
+    console.log(messageJSON)
     const post_id = messageJSON.post_id;
     const username = messageJSON.username;
     const comments = messageJSON.comments;
@@ -116,9 +116,10 @@ function styleMessage(messageJSON) {
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
     const likedOrNot = messageJSON.liked;
-
+    const availableOrNot = messageJSON.available;
     let pfp = messageJSON.pfp;
-    let src = ""
+    let src = "";
+    let isLiked = ``;
 
     if (pfp === "/static/images/default_pfp.jpg") {
         src = "/get_default"
@@ -133,9 +134,10 @@ function styleMessage(messageJSON) {
         isLiked = `<img id="${post_id}" onclick="likePostRequest(this)" src="./static/images/non-shaded-thumbs-up.png" height="35px">`;
     }
 
-    let card = `
+    if (availableOrNot == false){
+        console.log('new post')
+        return `
     
-<<<<<<< HEAD
         <div class="card">
             <p id='post_id'>${post_id}</p>
             <div class = "card-header">
@@ -144,12 +146,8 @@ function styleMessage(messageJSON) {
                     User: ${username}
                     Professor: ${professor}
                 </p>
-             
-                
-                <div class="countdown_time">00:00:00</div>
-            
-                
-                <div class="time">00:00:00</div>
+                <div class="countdown_time">Rating count is available.</div>
+                <div class="time">.</div>
             </div>
             <div class = "content">
                 <div class = "card-item">
@@ -172,45 +170,11 @@ function styleMessage(messageJSON) {
                 </div>
                 <div class="likes">
                     ${isLiked}
-=======
-    <div class="card">
-        <p id='post_id'>${post_id}</p>
-        <div class = "card-header">
-            <p>
-                <img class="pfp" src=${src}/>
-                User: ${username}
-                Professor: ${professor}
-            </p>
-            <div class="countdown_time">00:00:00</div>
-            <div class="time">00:00:00</div>
-        </div>
-        <div class = "content">
-            <div class = "card-item">
-                <p>Rating</p>
-                <div class = "box">
-                    <p class = "box-values">${rating}</p>
->>>>>>> parent of 41ec86f (working feature like and countdown)
                 </div>
             </div>
-            <div class = "card-item">
-                <p>Difficulty</p>
-                <div class = "box">
-                    <p class = "box-values">${difficulty}</p>
-                </div>
-            </div>
-            <div class = "card-item-comment">
-                <p class = "comment-title">Comments</p>
-                <div class = "comments">
-                    <p class = "comment-content">${comments}</p>
-                </div>
-            </div>
-            <div class="likes">
-                <p style="font-size:35px;" >${likes}</p>
-                ${isLiked}
-            </div>
+            
         </div>
         
-<<<<<<< HEAD
         `
     } else {
         return `
@@ -223,8 +187,8 @@ function styleMessage(messageJSON) {
                     User: ${username}
                     Professor: ${professor}
                 </p>
-                <div class="countdown_time">Time left to rate is over.</div>
-                <div class="time">00:00:00</div>
+                <div class="countdown_time">Rating count is available.</div>
+                <div class="time">.</div>
             </div>
             <div class = "content">
                 <div class = "card-item">
@@ -256,13 +220,10 @@ function styleMessage(messageJSON) {
         `
     }
 }
-=======
-    </div>
-    
-    `
->>>>>>> parent of 41ec86f (working feature like and countdown)
 
-    return card;
+function chatMessageHTML(messageJSON) {
+    return styleMessage(messageJSON)
+    
 }
 
 function addMessageToChat(messageJSON) {
@@ -303,6 +264,8 @@ function updateChat() {
 }
 
 function post_getter() { //called when the index page is loaded
-    updateChat()//before set interval() to updatechat
     initWS();
+    updateChat();
+    //before set interval() to updatechat
+    
 }
