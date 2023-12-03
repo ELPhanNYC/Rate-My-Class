@@ -43,14 +43,38 @@ def send_email(user_email,token):
     except Exception as e:
         #Need error handling*
         print(e.message)
-
-def subtract_time(t1: str, t2: str) -> str:
+        
+def subtract_time(t1,t2):
     h1, m1, s1 = t1.split(':')
     h2, m2, s2 = t2.split(':')
     time1 = timedelta(hours=int(h1), minutes=int(m1), seconds=int(s1))
     time2 = timedelta(hours=int(h2), minutes=int(m2), seconds=int(s2))
     time_difference = time2 - time1
     return str(time_difference)
+
+def add_time(post,time):
+    h, m, s = time.split(':')
+    h = int(h)
+    m = int(m)
+    s = int(s)
+
+    s += 1
+    if s >= 60:
+        s = 0
+        m += 1
+        if m >= 60:
+            m = 0
+            h += 1
+
+    s = str(s).zfill(2)
+    m = str(m).zfill(2)
+    h = str(h).zfill(2)
+
+    res = h + ":" + m + ":" + s
+    posts.update_one({"post_id" : post["post_id"]}, {"$set" : {"time_since_posted" : res}}, upsert=True)
+
+    return res
+
 
 def update_countdown(post_id, end_time: datetime):
     while datetime.datetime.now() < end_time:
@@ -85,7 +109,7 @@ def update_age():
         time_data.append(
             {
                 "post_id" : p["post_id"],
-                "time_since_post" : subtract_time(p["created_at"],datetime.datetime.now().strftime("%H:%M:%S"))
+                "time_since_post" : add_time(p,p["time_since_posted"])
             }
         )
     socketio.emit('update_age', time_data)
@@ -124,7 +148,7 @@ def handle_form_submission(data):
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
         post = {"post_id": post_id, "username": username, "professor": prof,"course": course, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []} #hide the likes
-        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "course": course,"rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S"), "time_since_posted" : "00:00:00"})
         
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
