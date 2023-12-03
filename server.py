@@ -97,7 +97,7 @@ def handle_form_submission(data):
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
         created_at = datetime.datetime.strptime(created_at, time_format)
-        end_time = created_at + datetime.timedelta(seconds=15)
+        end_time = created_at + datetime.timedelta(seconds=10)
         post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
 
         pfp = users.find_one({"username" : post["username"]})["pfp"]
@@ -106,7 +106,7 @@ def handle_form_submission(data):
         socketio.emit('response_post', post)
         #total_seconds = 30
         #delay for 30 sec, updateing the countdown timer
-        end_time = datetime.datetime.now() + datetime.timedelta(seconds=15)
+        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         update_countdown(post_id, end_time)
         #send post after delay
 
@@ -256,7 +256,7 @@ def get_posts():
             created_at = post["created_at"]
             time_format = "%H:%M:%S"
             created_at = datetime.datetime.strptime(created_at, time_format)
-            end_time = created_at + datetime.timedelta(seconds=15)
+            end_time = created_at + datetime.timedelta(seconds=10)
 
             post.pop("_id")
             liked_by = post['liked_by']
@@ -287,17 +287,12 @@ def like():
         auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
 
-        created_at = post["created_at"]
-        time_format = "%H:%M:%S"
-        created_at = datetime.datetime.strptime(created_at, time_format)
-        end_time = created_at + datetime.timedelta(seconds=15)
-        if datetime.datetime.now().time() < end_time.time():  
-            if cur in post['liked_by']:
-                post['liked_by'].remove(cur)
-                post['likes'] -= 1
-            else:
-                post['liked_by'].append(cur)
-                post['likes'] += 1
+        if cur in post['liked_by']:
+            post['liked_by'].remove(cur)
+            post['likes'] -= 1
+        else:
+            post['liked_by'].append(cur)
+            post['likes'] += 1
     except:
         None
     posts.replace_one({'post_id': like_dict['post_id']}, post)
