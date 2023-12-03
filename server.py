@@ -1,3 +1,4 @@
+import base64
 from flask import Flask , render_template , request , make_response, send_file, jsonify, send_from_directory
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
@@ -8,11 +9,17 @@ from pymongo import MongoClient # For using PyMongo
 import secrets
 import hashlib
 import bcrypt
-import json
 import datetime
 from datetime import timedelta
 from pymongo import MongoClient
 import os
+import time
+
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 # limiter = Limiter(
@@ -28,6 +35,7 @@ mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
+
 
 def add_time(post,time):
     h, m, s = time.split(':')
@@ -52,20 +60,47 @@ def add_time(post,time):
     
     return res
     
+
+URL = 'localhost:8080' #Change when we are deployed to real domain name
+PROTOCOL = 'http'      #Also change protocol to https
+
+def send_email(user_email,token):
+    message = Mail(
+    from_email='ratemyclass.app@gmail.com',
+    to_emails=user_email,
+    subject='Verify Your Email',
+    html_content=f'<strong>Please Click here to verify your email -> {PROTOCOL}://{URL}/verify/{token}</strong>')
+    try:
+        sg = SendGridAPIClient(os.environ.get('SG_KEY'))
+        response = sg.send(message)
+    except Exception as e:
+        print(e.message)
+
+
+# def update_countdown(post_id, end_time: datetime):
+#     while datetime.datetime.now() < end_time:
+#         remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
+#         #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
+#         # Sending the remaining time to the client using JSON
+#         socketio.emit('update_timer', ({
+#             'post_id': post_id,
+#             'available_time': remaining_time,
+#             'available': False,
+#         }))
+#         print('socket send the countdown timer: {}'.format(remaining_time))
+#         time.sleep(1)
+#     socketio.emit('update_timer', ({
+#             'post_id': post_id,
+#             'available_time': '00:00:00',
+#             'available': True,
+#         }))
     
-
-# @app.errorhandler(429)
-# def ratelimit_handler(e):
-#     return "Rate limit exceeded. Try again in 30 seconds.", 429
-
-
+##################################################################
+######################## Websocket routes ########################
+##################################################################
 @socketio.on('update_age')
 def update_age():
     time_data = []
-    #do the math for time since creation on server side then send for all posts
-    #for all posts, send back { "post_id" : post_id , "time_since_post" : time_since_post}
-    #on frontend for each post update the respective post
-    
     posts_ = posts.find({})
     for p in posts_:
         time_data.append(
@@ -84,6 +119,9 @@ def handle_form_submission(data):
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token" : hashed_bytes})
     
+    if auth_obj["status"] == False:
+        return
+    
     #retrieve post info and store it into "posts" collection
     if auth_obj != None:
         post_dict = data
@@ -101,27 +139,57 @@ def handle_form_submission(data):
         #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
+
         post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []}
         posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S"), "time_since_posted" : "00:00:00"})
-        socketio.emit('response_post', post)
 
+        created_at = datetime.datetime.now().strftime("%H:%M:%S")
+        time_format = "%H:%M:%S"
+        created_at = datetime.datetime.strptime(created_at, time_format)
+        end_time = created_at + datetime.timedelta(seconds=15)
+        post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
+
+        pfp = users.find_one({"username" : post["username"]})["pfp"]
+        post['pfp'] = pfp
+        
+        socketio.emit('response_post', post)
+        #total_seconds = 30
+        #delay for 30 sec, updateing the countdown timer
+        end_time = datetime.datetime.now() + datetime.timedelta(seconds=15)
+        update_countdown(post_id, end_time)
+        #send post after delay
+
+# @socketio.on('connect')
+# def handle_connect():
+#     #only authenticated user can like post
+#     auth_token = request.cookies.get("auth_token")
+#     id = request.sid
+#     try:
+#         cur_user = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+#         users.update_one({"username" : cur_user }, {"$set": {"sid": id}}, upsert=True)
+#         socketio.emit({'userid': id})
+#     except:
+#         return
+##################################################################
+######################### Default routes #########################
+##################################################################
 @app.route("/", methods = ['GET'])
 def index_page():
-    #UPDATE pass in username for authenticated user to the index page
-    #TODO: beautify the frontend
-    #verify user using authentication token
     is_authed = request.cookies.get("auth_token")
     username = ""
+    status = ""
     rating_posts = []
+    # retrieve username if authenticated and user verification status
     if is_authed:
         hashed_token = hashlib.sha256(is_authed.encode())
         hashed_bytes = hashed_token.digest()
         auth_obj = users.find_one({"auth_token" : hashed_bytes})
         if auth_obj:
             username = auth_obj['username']
-    cursor_post = posts.find({})
-    rating_posts = [post for post in cursor_post]
-    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, posts = rating_posts)
+            status = auth_obj['status']
+    #cursor_post = posts.find({})
+    #rating_posts = [post for post in cursor_post]
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, verified = f"Email Verified: {status}") #posts=rating_posts
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
@@ -188,6 +256,7 @@ def register():
     register_dict = dict(request.form)
     user = register_dict.get("username_reg")
     pwd = register_dict.get("password_reg")
+    email = register_dict.get("email_reg")
 
     #Escape HTML in username
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
@@ -201,9 +270,16 @@ def register():
     salt = bcrypt.gensalt()
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
     
-    #Input username and password into "users" collection
+    #Email Verification Token
+    email_token = secrets.token_urlsafe(32)
+
+    # Create verification token fro URL
+    url_token = secrets.token_urlsafe(16)
+    hashed_token = hashlib.sha256(url_token.encode())
+    hashed_bytes = hashed_token.digest()
+    #Input username and password into "users" collection alongside email verification status and email address
     default_path = '/static/images/default_pfp.jpg'
-    users.insert_one({"username": user_escaped, "password": hashed_pwd, "pfp" : default_path})
+    users.insert_one({"username": user_escaped, "password": hashed_pwd, "email": email, "pfp" : default_path,"status": False, "email_token" : email_token})
     
     #Save pfp
     pfp = request.files["profile_pic"]
@@ -214,9 +290,24 @@ def register():
         print(os.path.join(folder, pfp.filename).split("/"))
         users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
+    send_email(email,email_token)
+
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
+
+@app.route('/verify/<token>')
+def verify(token):
+    user_obj = users.find_one({"email_token": token})
+    if user_obj:
+        users.update_one({"email_token": token}, {"$set" : {"status" : True}},upsert=True)
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
+        return response
+    else:
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
+        return response
 
 @app.route('/get_pfp/<filename>/', methods = ['GET'])
 def get_image(filename):
@@ -232,15 +323,21 @@ def get_posts():
     db_posts = posts.find({})
     post_arr = []
 
-    try:
+    try: #if the user is authenticated, all posts will show whether this user like this post or not.
         auth_token = request.cookies.get('auth_token')
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
         for post in db_posts:
+            created_at = post["created_at"]
+            time_format = "%H:%M:%S"
+            created_at = datetime.datetime.strptime(created_at, time_format)
+            end_time = created_at + datetime.timedelta(seconds=15)
+
             post.pop("_id")
             liked_by = post['liked_by']
             post['liked'] =  cur in liked_by
             pfp = users.find_one({"username" : post["username"]})["pfp"]
             post['pfp'] = pfp
+            post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
             post_arr.append(post)
     except:
         for post in db_posts:
@@ -260,17 +357,28 @@ def like():
     post = posts.find_one({'post_id': like_dict['post_id']})
     # post["likes"] = like_dict['likes']
     try:
-        auth_token = request.cookies.get("auth_token") #cookie_dict["auth_token"]
+        #only authenticated user can like post
+        auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
-        if cur in post['liked_by']:
-            post['liked_by'].remove(cur)
-            post['likes'] -= 1
-        else:
-            post['liked_by'].append(cur)
-            post['likes'] += 1
+        if cur["status"] == False:
+            print("CANNOT LIKE DUE TO INVALID EMAIL VERIFY")
+            return
+
+        created_at = post["created_at"]
+        time_format = "%H:%M:%S"
+        created_at = datetime.datetime.strptime(created_at, time_format)
+        end_time = created_at + datetime.timedelta(seconds=15)
+        if datetime.datetime.now().time() < end_time.time():  
+            if cur in post['liked_by']:
+                post['liked_by'].remove(cur)
+                post['likes'] -= 1
+            else:
+                post['liked_by'].append(cur)
+                post['likes'] += 1
     except:
         None
-    posts.replace_one({'post_id': like_dict['post_id']},post)
+    posts.replace_one({'post_id': like_dict['post_id']}, post)
+    socketio.emit('update_like', {'success': True})
     return make_response("OK", 200)
 
 if __name__ == '__main__':
