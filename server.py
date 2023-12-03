@@ -21,7 +21,9 @@ load_dotenv()
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-mongo = MongoClient('mongodb', username='root', password='examplepass')
+#
+# mongo = MongoClient('mongodb', username='root', password='examplepass')
+mongo = MongoClient("localhost")
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
@@ -122,7 +124,7 @@ def handle_form_submission(data):
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
         created_at = datetime.datetime.strptime(created_at, time_format)
-        end_time = created_at + datetime.timedelta(seconds=15)
+        end_time = created_at + datetime.timedelta(seconds=10)
         post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
 
         pfp = users.find_one({"username" : post["username"]})["pfp"]
@@ -131,7 +133,7 @@ def handle_form_submission(data):
         socketio.emit('response_post', post)
         #total_seconds = 30
         #delay for 30 sec, updateing the countdown timer
-        end_time = datetime.datetime.now() + datetime.timedelta(seconds=15)
+        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         update_countdown(post_id, end_time)
         #send post after delay
 
@@ -305,7 +307,7 @@ def get_posts():
             created_at = post["created_at"]
             time_format = "%H:%M:%S"
             created_at = datetime.datetime.strptime(created_at, time_format)
-            end_time = created_at + datetime.timedelta(seconds=15)
+            end_time = created_at + datetime.timedelta(seconds=10)
 
             post.pop("_id")
             liked_by = post['liked_by']
@@ -335,6 +337,7 @@ def like():
         #only authenticated user can like post
         auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+
 
         if cur["status"] == False:
             return
