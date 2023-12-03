@@ -15,8 +15,7 @@ import time
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-#mongo = MongoClient('mongodb', username='root', password='examplepass')
-mongo = MongoClient("localhost")
+mongo = MongoClient('mongodb', username='root', password='examplepass')
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
@@ -39,7 +38,7 @@ def update_countdown(post_id, end_time: datetime):
             'available_time': remaining_time,
             'available': False,
         }))
-        #print('socket send the countdown timer: {}'.format(remaining_time))
+        print('socket send the countdown timer: {}'.format(remaining_time))
         time.sleep(1)
     socketio.emit('update_timer', ({
             'post_id': post_id,
@@ -69,8 +68,6 @@ def update_age():
 
 @socketio.on('submit_form')
 def handle_form_submission(data):
-    print("SOCKET HIT")
-    print(data)
     # verify user using authentication token
     auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
     hashed_token = hashlib.sha256(auth_token.encode())
@@ -81,15 +78,12 @@ def handle_form_submission(data):
     if auth_obj != None:
         post_dict = data
         unsafe_prof = post_dict.get("professor")
-        unsafe_course = post_dict.get("course")
-        print("-------COURSE-------",unsafe_course)
         unsafe_rating = post_dict.get("rating")
         unsafe_difficulty = post_dict.get("difficulty")
         unsafe_comments = post_dict.get("comments")
 
         #escape html for all user input
         prof = unsafe_prof.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
-        course = unsafe_course.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
         rating = unsafe_rating.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
         difficulty = unsafe_difficulty.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
         comments = unsafe_comments.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
@@ -97,8 +91,8 @@ def handle_form_submission(data):
         #store post info into "posts" collection: unique post id, username, prof, rating, difficulty, comments, likes, liked_by
         post_id = auth_token = secrets.token_urlsafe(16)
         username = auth_obj["username"]
-        post = {"post_id": post_id, "username": username, "professor": prof,"course": course, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []} #hide the likes
-        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "course": course,"rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
+        post = {"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": []} #hide the likes
+        posts.insert_one({"post_id": post_id, "username": username, "professor": prof, "rating": rating, "difficulty": difficulty, "comments": comments, "likes": 0, "liked_by": [], "created_at" : datetime.datetime.now().strftime("%H:%M:%S")})
         
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
@@ -234,7 +228,7 @@ def register():
         folder = os.path.join(app.instance_path, 'pfp')
         os.makedirs(folder, exist_ok=True)
         pfp.save(os.path.join(folder, pfp.filename))
-        #print(os.path.join(folder, pfp.filename).split("/"))
+        print(os.path.join(folder, pfp.filename).split("/"))
         users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
     response = make_response("Moved Permanently", 301)
@@ -282,47 +276,10 @@ def get_posts():
 
     return jsonify(post_arr)
 
-
-#new
-@app.route("/filterPosts", methods = ['GET'])
-def get_filteredPosts():
-    db_posts = posts.find({})
-    post_arr = []
-
-    try: #if the user is authenticated, all posts will show whether this user like this post or not.
-        auth_token = request.cookies.get('auth_token')
-        cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
-        for post in db_posts:
-            created_at = post["created_at"]
-            time_format = "%H:%M:%S"
-            created_at = datetime.datetime.strptime(created_at, time_format)
-            end_time = created_at + datetime.timedelta(seconds=15)
-
-            post.pop("_id")
-            liked_by = post['liked_by']
-            post['liked'] =  cur in liked_by
-            pfp = users.find_one({"username" : post["username"]})["pfp"]
-            post['pfp'] = pfp
-            post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
-            post_arr.append(post)
-    except:
-        for post in db_posts:
-            post.pop("_id")
-            liked_by = post['liked_by']
-            post['liked'] =  False
-            pfp = users.find_one({"username" : post["username"]})["pfp"]
-            post['pfp'] = pfp
-            post_arr.append(post)
-
-    return jsonify(post_arr)
-
-
-
-
 @app.route("/like", methods = ["POST"])
 def like():
     like_dict = request.get_json()
-    #print(like_dict)
+    print(like_dict)
     post = posts.find_one({'post_id': like_dict['post_id']})
     # post["likes"] = like_dict['likes']
     try:
