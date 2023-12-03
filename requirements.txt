@@ -2,3 +2,5 @@ flask
 flask_pymongo
 flask_socketio
 bcrypt
+sendgrid
+python-dotenv

@@ -1,3 +1,4 @@
+import base64
 from flask import Flask , render_template , request , make_response, send_file, jsonify, send_from_directory
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
@@ -5,20 +6,43 @@ from pymongo import MongoClient # For using PyMongo
 import secrets
 import hashlib
 import bcrypt
-import json
 import datetime
 from datetime import timedelta
 from pymongo import MongoClient
 import os
 import time
 
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
+from dotenv import load_dotenv
+
+load_dotenv()
+
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
-mongo = MongoClient('mongodb', username='root', password='examplepass')
+#
+# mongo = MongoClient('mongodb', username='root', password='examplepass')
+mongo = MongoClient("localhost")
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
+
+URL = 'localhost:8080' #Change when we are deployed to real domain name
+PROTOCOL = 'http'      #Also change protocol to https
+
+def send_email(user_email,token):
+    message = Mail(
+    from_email='ratemyclass.app@gmail.com',
+    to_emails=user_email,
+    subject='Verify Your Email',
+    html_content=f'<strong>Please Click here to verify your email -> {PROTOCOL}://{URL}/verify/{token}</strong>')
+    try:
+        sg = SendGridAPIClient(os.environ.get('SG_KEY'))
+        response = sg.send(message)
+    except Exception as e:
+        #Need error handling*
+        print(e.message)
 
 def subtract_time(t1: str, t2: str) -> str:
     h1, m1, s1 = t1.split(':')
@@ -76,6 +100,9 @@ def handle_form_submission(data):
     hashed_bytes = hashed_token.digest()
     auth_obj = users.find_one({"auth_token" : hashed_bytes})
     
+    if auth_obj["status"] == False:
+        return
+    
     #retrieve post info and store it into "posts" collection
     if auth_obj != None:
         post_dict = data
@@ -102,7 +129,7 @@ def handle_form_submission(data):
         created_at = datetime.datetime.now().strftime("%H:%M:%S")
         time_format = "%H:%M:%S"
         created_at = datetime.datetime.strptime(created_at, time_format)
-        end_time = created_at + datetime.timedelta(seconds=15)
+        end_time = created_at + datetime.timedelta(seconds=10)
         post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
 
         pfp = users.find_one({"username" : post["username"]})["pfp"]
@@ -111,7 +138,7 @@ def handle_form_submission(data):
         socketio.emit('response_post', post)
         #total_seconds = 30
         #delay for 30 sec, updateing the countdown timer
-        end_time = datetime.datetime.now() + datetime.timedelta(seconds=15)
+        end_time = datetime.datetime.now() + datetime.timedelta(seconds=10)
         update_countdown(post_id, end_time)
         #send post after delay
 
@@ -133,17 +160,19 @@ def handle_form_submission(data):
 def index_page():
     is_authed = request.cookies.get("auth_token")
     username = ""
+    status = ""
     rating_posts = []
-    #retrieve username if authenticated
+    # retrieve username if authenticated and user verification status
     if is_authed:
         hashed_token = hashlib.sha256(is_authed.encode())
         hashed_bytes = hashed_token.digest()
         auth_obj = users.find_one({"auth_token" : hashed_bytes})
         if auth_obj:
             username = auth_obj['username']
+            status = auth_obj['status']
     #cursor_post = posts.find({})
     #rating_posts = [post for post in cursor_post]
-    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username) #posts=rating_posts
+    content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, verified = f"Email Verified: {status}") #posts=rating_posts
     resp = make_response(content)
     resp.headers['X-Content-Type-Options'] = 'nosniff'
     return resp
@@ -210,6 +239,7 @@ def register():
     register_dict = dict(request.form)
     user = register_dict.get("username_reg")
     pwd = register_dict.get("password_reg")
+    email = register_dict.get("email_reg")
 
     #Escape HTML in username
     user_escaped = user.replace("&","&amp").replace("<","&lt;").replace(">","&gt")
@@ -223,10 +253,16 @@ def register():
     salt = bcrypt.gensalt()
     hashed_pwd = bcrypt.hashpw(pwd.encode("utf-8"), salt)
     
-    #Input username and password into "users" collection
+    #Email Verification Token
+    email_token = secrets.token_urlsafe(32)
+
+    # Create verification token fro URL
+    url_token = secrets.token_urlsafe(16)
+    hashed_token = hashlib.sha256(url_token.encode())
+    hashed_bytes = hashed_token.digest()
+    #Input username and password into "users" collection alongside email verification status and email address
     default_path = '/static/images/default_pfp.jpg'
-    users.insert_one({"username": user_escaped, "password": hashed_pwd, "pfp" : default_path})
-    
+    users.insert_one({"username": user_escaped, "password": hashed_pwd, "email": email, "pfp" : default_path,"status": False, "email_token" : email_token})
     #Save pfp
     pfp = request.files["profile_pic"]
     if pfp:
@@ -236,9 +272,24 @@ def register():
         #print(os.path.join(folder, pfp.filename).split("/"))
         users.update_one({"username" : user_escaped}, {"$set" : {"pfp" : f'{os.path.join(folder, pfp.filename).split("/")[-1]}'}})
 
+    send_email(email,email_token)
+
     response = make_response("Moved Permanently", 301)
     response.headers["Location"] = '/login_page'
     return response
+
+@app.route('/verify/<token>')
+def verify(token):
+    user_obj = users.find_one({"email_token": token})
+    if user_obj:
+        users.update_one({"email_token": token}, {"$set" : {"status" : True}},upsert=True)
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
+        return response
+    else:
+        response = make_response("Moved Permanently",301)
+        response.headers["Location"] = '/'
+        return response
 
 @app.route('/get_pfp/<filename>/', methods = ['GET'])
 def get_image(filename):
@@ -261,7 +312,7 @@ def get_posts():
             created_at = post["created_at"]
             time_format = "%H:%M:%S"
             created_at = datetime.datetime.strptime(created_at, time_format)
-            end_time = created_at + datetime.timedelta(seconds=15)
+            end_time = created_at + datetime.timedelta(seconds=10)
 
             post.pop("_id")
             liked_by = post['liked_by']
@@ -361,6 +412,10 @@ def like():
         auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
 
+
+        if cur["status"] == False:
+            return
+        
         created_at = post["created_at"]
         time_format = "%H:%M:%S"
         created_at = datetime.datetime.strptime(created_at, time_format)

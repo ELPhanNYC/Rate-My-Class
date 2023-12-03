@@ -78,6 +78,7 @@ img.home-logo {
 }
 
 .welcome {
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -228,10 +229,6 @@ a {
     display: none;
 }
 
-
-
-
-
 .custom-select {
     position: relative;
     z-index: 1;
@@ -290,3 +287,17 @@ a {
     background-color: #f0f0f0;
   }
 
+.drop {
+    background-color: none;
+    border: none;
+}
+.welcome:hover .drop-content {display: block;}
+
+.drop-content {
+    display: none;
+    position: absolute;
+    background-color: #f1f1f1;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
