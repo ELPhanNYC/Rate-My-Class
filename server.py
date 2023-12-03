@@ -22,8 +22,8 @@ app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
 #
-# mongo = MongoClient('mongodb', username='root', password='examplepass')
-mongo = MongoClient("localhost")
+mongo = MongoClient('mongodb', username='root', password='examplepass')
+#mongo = MongoClient("localhost")
 db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
