@@ -71,13 +71,18 @@ function initWS() {
 
 function sendPost(){
     const ratingElem = document.getElementById("rating-element");
+    console.log("SEND POST FUNCTION CALLED")
+    
     const formData = {
         professor: document.getElementById('rating-form-prof').value,
+        course: document.querySelector('.selected-option').innerText.replace("Selected: ", ""), //NEW
         rating: document.getElementById('rating-form-rating').value,
         difficulty: document.getElementById('rating-form-diff').value,
         comments: document.getElementById('rating-form-comments').value,
       };
     // Send the JSON data via WebSocket
+    console.log("formData")
+    console.log(formData)
     socket.emit('submit_form', formData);
     window.location.replace(`http://${domain}:${port}`);
 }
@@ -112,6 +117,7 @@ function styleMessage(messageJSON) {
     const username = messageJSON.username;
     const comments = messageJSON.comments;
     const professor = messageJSON.professor;
+    const course = messageJSON.course; 
     const difficulty = messageJSON.difficulty;
     const rating = messageJSON.rating;
     const likes = messageJSON.likes;
@@ -144,6 +150,7 @@ function styleMessage(messageJSON) {
                 <p>
                     <img class="pfp" src=${src}/>
                     User: ${username}
+                    Course: ${course}
                     Professor: ${professor}
                 </p>
                 <div class="countdown_time">Rating count is available.</div>
@@ -185,6 +192,7 @@ function styleMessage(messageJSON) {
                 <p>
                     <img class="pfp" src=${src}/>
                     User: ${username}
+                    Course: ${course}
                     Professor: ${professor}
                 </p>
                 <div class="countdown_time">Rating count is available.</div>
@@ -268,4 +276,84 @@ function post_getter() { //called when the index page is loaded
     updateChat();
     //before set interval() to updatechat
     
+}
+
+
+//new
+let isOpen = false;
+
+function toggleDropdown() {
+    const options = document.getElementById('options');
+    isOpen = !isOpen;
+    options.style.display = isOpen ? 'block' : 'none';
+}
+
+function filterOptions() {
+    const searchTerm = document.querySelector('.options input').value.toLowerCase();
+    const options = document.querySelectorAll('.option');
+
+    options.forEach(option => {
+        const label = option.innerText.toLowerCase();
+        if (label.includes(searchTerm)) {
+            option.style.display = 'block';
+        } else {
+             option.style.display = 'none';
+        }
+    });
+}
+
+function selectOption(value) {
+    const selectedOption = document.querySelector('.selected-option');
+    selectedOption.innerText = `Selected: ${value}`;
+    selectOption.value = value
+    toggleDropdown();
+}
+
+
+function filterChat(value) { //same thing as update chat but only get the selected course posts
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            clearChat();
+            const messages = JSON.parse(this.response);
+            console.log(messages.reverse())
+            for (const message of messages.reverse()) {
+                if (message.course == value){ //only add message if its the same as the selected course
+                    addMessageToChat(message);
+                }
+              
+            }         
+        }
+    }
+    request.open("GET", "/filterPosts");
+    request.send();
+}
+
+function sendAllChats() {
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            clearChat();
+            const messages = JSON.parse(this.response);
+            console.log(messages.reverse())
+            for (const message of messages.reverse()) {
+                addMessageToChat(message);
+            }
+        }
+    }
+    request.open("GET", "/sendAllPosts");
+    request.send();
+}
+
+
+function filterCourse(value){ //value = course number
+    selectOption(value); //update search bar html
+    
+    if (value != "ALL CLASSES"){
+        filterChat(value); //filter the posts
+    }
+    
+    else{
+        sendAllChats();
+    }
 }
