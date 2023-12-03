@@ -45,9 +45,10 @@
             
 
             <div class="custom-select" id="customSelect">
-                <div class="selected-option" onclick="toggleDropdown()">Select a class</div>
+                <div class="selected-option" onclick="toggleDropdown()">Click to filter by classes </div>
                 <div class="options" id="options">
-                  <input type="text" placeholder="Type here to search..." oninput="filterOptions()">
+                  <input type="text" placeholder="Type class number..." oninput="filterOptions()">
+                  <div class="option" onclick="filterCourse('ALL CLASSES')" value = "ALL CLASSES">ALL CLASSES</div>
                   <div class="option" onclick="filterCourse('TNS 112')" value = "TNS 112">TNS 112</div>
                   <div class="option" onclick="filterCourse('TNS 199')" value = "TNS 199">TNS 199</div>
                   <div class="option" onclick="filterCourse('TNS 232')" value = "TNS 232">TNS 232</div>

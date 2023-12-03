@@ -318,12 +318,20 @@ function filterChat(value) { //same thing as update chat but only get the select
             clearChat();
             const messages = JSON.parse(this.response);
             console.log(messages.reverse())
-            for (const message of messages.reverse()) {
-                if (message.course == value){ //only add message if its the same as the selected course
-                    addMessageToChat(message);
+            if (value == "ALL CLASSES"){ //load all classes
+                for (const message of messages.reverse()) {
+                        addMessageToChat(message);  
                 }
-                
             }
+            else{
+                for (const message of messages.reverse()) {
+                    if (message.course == value){ //only add message if its the same as the selected course
+                        addMessageToChat(message);
+                    }
+                    
+                }
+            }
+            
         }
     }
     request.open("GET", "/filterPosts");
