@@ -279,6 +279,7 @@ function post_getter() { //called when the index page is loaded
     
 }
 
+
 //new
 let isOpen = false;
 
@@ -307,4 +308,30 @@ function selectOption(value) {
     selectedOption.innerText = `Selected: ${value}`;
     selectOption.value = value
     toggleDropdown();
+}
+
+
+function filterChat(value) { //same thing as update chat but only get the selected course posts
+    const request = new XMLHttpRequest();
+    request.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+            clearChat();
+            const messages = JSON.parse(this.response);
+            console.log(messages.reverse())
+            for (const message of messages.reverse()) {
+                if (message.course == value){ //only add message if its the same as the selected course
+                    addMessageToChat(message);
+                }
+                
+            }
+        }
+    }
+    request.open("GET", "/filterPosts");
+    request.send();
+}
+
+
+function filterCourse(value){ //value = course number
+    selectOption(value); //update search bar html
+    filterChat(value); //filter the posts
 }

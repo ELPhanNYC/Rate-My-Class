@@ -69,6 +69,8 @@ def update_age():
 
 @socketio.on('submit_form')
 def handle_form_submission(data):
+    print("SOCKET HIT")
+    print(data)
     # verify user using authentication token
     auth_token = request.cookies.get("auth_token")#cookie_dict["auth_token"]
     hashed_token = hashlib.sha256(auth_token.encode())
@@ -279,6 +281,43 @@ def get_posts():
             post_arr.append(post)
 
     return jsonify(post_arr)
+
+
+#new
+@app.route("/filterPosts", methods = ['GET'])
+def get_filteredPosts():
+    db_posts = posts.find({})
+    post_arr = []
+
+    try: #if the user is authenticated, all posts will show whether this user like this post or not.
+        auth_token = request.cookies.get('auth_token')
+        cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
+        for post in db_posts:
+            created_at = post["created_at"]
+            time_format = "%H:%M:%S"
+            created_at = datetime.datetime.strptime(created_at, time_format)
+            end_time = created_at + datetime.timedelta(seconds=15)
+
+            post.pop("_id")
+            liked_by = post['liked_by']
+            post['liked'] =  cur in liked_by
+            pfp = users.find_one({"username" : post["username"]})["pfp"]
+            post['pfp'] = pfp
+            post['available'] = datetime.datetime.now().time() > end_time.time() #true when the post is up
+            post_arr.append(post)
+    except:
+        for post in db_posts:
+            post.pop("_id")
+            liked_by = post['liked_by']
+            post['liked'] =  False
+            pfp = users.find_one({"username" : post["username"]})["pfp"]
+            post['pfp'] = pfp
+            post_arr.append(post)
+
+    return jsonify(post_arr)
+
+
+
 
 @app.route("/like", methods = ["POST"])
 def like():
