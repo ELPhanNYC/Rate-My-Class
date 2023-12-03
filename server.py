@@ -2,8 +2,8 @@ from flask import Flask , render_template , request , make_response, send_file, 
 from flask_socketio import SocketIO
 from pymongo import MongoClient # For using PyMongo 
 
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+# from flask_limiter import Limiter
+# from flask_limiter.util import get_remote_address <-- will use localhost every time need to forward ip thru nginx
 
 import secrets
 import hashlib
@@ -15,12 +15,12 @@ from pymongo import MongoClient
 import os
 
 app = Flask(__name__)
-limiter = Limiter(
-    app=app,
-    key_func=get_remote_address,
-    application_limits=['50/10seconds'],
-    storage_uri="memory://",
-)
+# limiter = Limiter(
+#     app=app,
+#     key_func=get_remote_address,
+#     application_limits=['50/10seconds'],
+#     storage_uri="memory://",
+# )
 
 socketio = SocketIO(app, cors_allowed_origins="*") # Socket Def -> Needs JS Update
 #app.config["MONGO_URI"] = 'mongodb://root:examplepass@mongodb:27017/rate_my_class?authSource=admin'
@@ -54,9 +54,9 @@ def add_time(post,time):
     
     
 
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    return "Rate limit exceeded. Try again in 30 seconds.", 429
+# @app.errorhandler(429)
+# def ratelimit_handler(e):
+#     return "Rate limit exceeded. Try again in 30 seconds.", 429
 
 
 @socketio.on('update_age')
