@@ -4,10 +4,15 @@ Stemmed from the fact that our current university (SUNY University at Buffalo) d
 This project, created by Good Question in association with CSE312, will allow students to view and compose ratings and feedback for any class. This initial version will target the University at Buffalo due to the aforementioned issue.
 
 # Our Team
+
 > Ethan Phan
+
 > Julian Elmasry
+
 > Marian Huynh
+
 > Kiki Tran
+
 > Andrew Peralta
 
 # Figma Design
