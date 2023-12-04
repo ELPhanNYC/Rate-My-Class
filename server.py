@@ -27,7 +27,7 @@ db = mongo["rmc"]
 posts = db["posts"]
 users = db["users"]
 
-URL = 'localhost:8080' #Change when we are deployed to real domain name
+URL = 'ratemyclass.tech' #Change when we are deployed to real domain name
 PROTOCOL = 'http'      #Also change protocol to https
 
 # Dictionary to store request count and timestamp for each IP

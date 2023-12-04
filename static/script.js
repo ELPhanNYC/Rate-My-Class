@@ -1,5 +1,5 @@
-let domain = 'localhost'
-let port = '8080'
+let domain = 'ratemyclass.tech'
+//let port = '8080'
 let socket;
 
 function getTime() {
@@ -46,7 +46,7 @@ function updatePostsTime(time_data) {
 
 function initWS() {
     // Establish a WebSocket connection with the server
-    socket = io.connect(`http://${domain}:${port}`, {transports: ['websocket']});
+    socket = io.connect(`http://${domain}`, {transports: ['websocket']});
     socket.on('connect', (message) => {
         setInterval(getTime,1000)
         console.log('WebSocket connection established');
@@ -103,7 +103,7 @@ function sendPost(){
     console.log("formData")
     console.log(formData)
     socket.emit('submit_form', formData);
-    window.location.replace(`http://${domain}:${port}`);
+    window.location.replace(`http://${domain}`);
 }
 
 function likePostRequest(imgElement) {
