@@ -40,7 +40,7 @@ ban_duration = 30  # in seconds
 
 @app.before_request
 def check_rate_limit():
-    client_ip = request.remote_addr
+    client_ip = request.headers.get('X-Real-IP') or request.remote_addr
 
     # Check if the IP is in the dictionary
     if client_ip in ip_request_count:
