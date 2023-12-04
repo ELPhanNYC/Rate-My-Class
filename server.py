@@ -60,6 +60,14 @@ def subtract_time(t1,t2):
     time_difference = time2 - time1
     return str(time_difference)
 
+def subtract_time_like(t1: str, t2: str) -> str:
+    h1, m1, s1 = t1.split(':')
+    h2, m2, s2 = t2.split(':')
+    time1 = timedelta(hours=int(h1), minutes=int(m1), seconds=int(s1))
+    time2 = timedelta(hours=int(h2), minutes=int(m2), seconds=int(s2))
+    time_difference = time2 - time1
+    return str(time_difference)
+
 def add_time(post,time):
     h, m, s = time.split(':')
     h = int(h)
@@ -86,7 +94,7 @@ def add_time(post,time):
 
 def update_countdown(post_id, end_time: datetime):
     while datetime.datetime.now() < end_time:
-        remaining_time = subtract_time(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
+        remaining_time = subtract_time_like(datetime.datetime.now().strftime("%H:%M:%S"), end_time.strftime("%H:%M:%S"))
         #remaining_time = (end_time - datetime.datetime.now()).total_seconds()
         # Sending the remaining time to the client using JSON
         socketio.emit('update_timer', ({
@@ -94,7 +102,7 @@ def update_countdown(post_id, end_time: datetime):
             'available_time': remaining_time,
             'available': False,
         }))
-        #print('socket send the countdown timer: {}'.format(remaining_time))
+        print('socket send the countdown timer: {}'.format(remaining_time))
         time.sleep(1)
     socketio.emit('update_timer', ({
             'post_id': post_id,
@@ -231,7 +239,7 @@ def index_page():
     
     is_authed = request.cookies.get("auth_token")
     username = ""
-    status = ""
+    status = "" #DIFF
     rating_posts = []
     # retrieve username if authenticated and user verification status
     if is_authed:
@@ -240,7 +248,7 @@ def index_page():
         auth_obj = users.find_one({"auth_token" : hashed_bytes})
         if auth_obj:
             username = auth_obj['username']
-            status = auth_obj['status']
+            status = auth_obj['status'] #DIFF
     #cursor_post = posts.find({})
     #rating_posts = [post for post in cursor_post]
     content = render_template('index.html', is_authed = request.cookies.get("auth_token"), username = username, verified = f"Email Verified: {status}") #posts=rating_posts
@@ -483,26 +491,39 @@ def like():
         auth_token = request.cookies.get("auth_token")
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
 
-
+        #-----------------DIFF: From most recent commit-----------------
         if cur["status"] == False:
             return
-        
-        created_at = post["created_at"]
-        time_format = "%H:%M:%S"
-        created_at = datetime.datetime.strptime(created_at, time_format)
-        end_time = created_at + datetime.timedelta(seconds=15)
-        if datetime.datetime.now().time() < end_time.time():  
-            if cur in post['liked_by']:
-                post['liked_by'].remove(cur)
-                post['likes'] -= 1
-            else:
-                post['liked_by'].append(cur)
-                post['likes'] += 1
+        # created_at = post["created_at"]
+        # time_format = "%H:%M:%S"
+        # created_at = datetime.datetime.strptime(created_at, time_format)
+        # end_time = created_at + datetime.timedelta(seconds=15)
+        # if datetime.datetime.now().time() < end_time.time():  
+        #     if cur in post['liked_by']:
+        #         post['liked_by'].remove(cur)
+        #         post['likes'] -= 1
+        #     else:
+        #         post['liked_by'].append(cur)
+        #         post['likes'] += 1
+        #-----------------DIFF: From most recent commit-----------------
+
+
+        #--------------DIFF: From like button working commit-------------
+        if cur in post['liked_by']:
+            post['liked_by'].remove(cur)
+            post['likes'] -= 1
+        else:
+            post['liked_by'].append(cur)
+            post['likes'] += 1
+        #--------------DIFF: From like button working commit-------------
+
     except:
         None
     posts.replace_one({'post_id': like_dict['post_id']}, post)
     socketio.emit('update_like', {'success': True})
     return make_response("OK", 200)
+
+
 
 if __name__ == '__main__':
     # app.run(host='0.0.0.0',port=8080)
