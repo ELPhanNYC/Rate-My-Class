@@ -492,8 +492,8 @@ def like():
         cur = users.find_one({"auth_token":hashlib.sha256(auth_token.encode()).digest()})["username"]
 
         #-----------------DIFF: From most recent commit-----------------
-        if cur["status"] == False:
-            return
+        # if cur["status"] == False:
+        #     return
         # created_at = post["created_at"]
         # time_format = "%H:%M:%S"
         # created_at = datetime.datetime.strptime(created_at, time_format)
