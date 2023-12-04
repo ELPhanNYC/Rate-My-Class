@@ -65,9 +65,17 @@ function initWS() {
 
     // Called whenever data is received from the server over the WebSocket connection
     socket.on('response_post', (message) => {
-        // Handle the server's response message here
-        console.log(message);
-        addMessageToChat(message);
+        const selectedOption = document.querySelector('.selected-option');
+        let filterCourseName = selectedOption.innerText;
+        console.log("CourseName Socket")
+        console.log(filterCourseName)
+        messageCourse = message.course;
+        if ((filterCourseName == messageCourse) || (filterCourseName == "Click to filter by classes")|| (filterCourseName == "ALL CLASSES" )){
+            // Handle the server's response message here
+            console.log(message);
+            addMessageToChat(message);
+        }
+        
     
     });
     socket.on('update_age', (time_data) => {
@@ -315,7 +323,13 @@ function filterOptions() {
 
 function selectOption(value) {
     const selectedOption = document.querySelector('.selected-option');
-    selectedOption.innerText = `Selected: ${value}`;
+    if (value == "ALL CLASSES"){
+        selectedOption.innerText = `Click to filter by classes`;
+    }
+    else{
+        selectedOption.innerText = `Selected: ${value}`;
+    }
+   // selectedOption.innerText = `Selected: ${value}`;
     selectOption.value = value
     toggleDropdown();
 }
